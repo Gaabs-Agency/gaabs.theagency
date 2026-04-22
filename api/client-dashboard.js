@@ -1,55 +1,91 @@
 export default async function handler(req, res) {
-  try {
-    const slug = req.query.slug;
-    if (!slug) return res.status(400).json({ error: "Missing slug" });
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    const BASE = process.env.RELEVANCE_BASE;
-    const AUTH = process.env.RELEVANCE_AUTH;
-    if (!BASE || !AUTH) return res.status(500).json({ error: "Missing env vars" });
-
-    async function rf(path, body) {
-      const r = await fetch(`${BASE}${path}`, {
-        method: "POST",
-        headers: { Authorization: AUTH, "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      const text = await r.text();
-      if (!r.ok) throw new Error(`${r.status}: ${text.slice(0,200)}`);
-      return text ? JSON.parse(text) : {};
-    }
-
-    const pResp = await rf("/datasets/gaabs_projects/documents/get_where", {
-      filters: [{ field:"client_slug", filter_type:"exact_match", condition_value:slug }],
-      page_size: 1
-    });
-    const project = (pResp.results||[])[0];
-    if (!project) return res.status(404).json({ error: "Project not found" });
-
-    const pid = project.project_id || project.id;
-
-    const [aResp, coResp] = await Promise.all([
-      rf("/datasets/gaabs_activity_log/documents/get_where", {
-        filters:[{field:"project_id",filter_type:"exact_match",condition_value:pid}], page_size:20
-      }),
-      rf("/datasets/gaabs_change_orders/documents/get_where", {
-        filters:[{field:"project_id",filter_type:"exact_match",condition_value:pid}], page_size:20
-      })
-    ]);
-
-    return res.status(200).json({
-      project: {
-        project_id: project.project_id,
-        project_name: project.project_name,
-        client: project.client,
-        phase: project.phase,
-        next_milestone: project.next_milestone,
-        progress: project.project_completion_pct || 0,
-        health: project.health || "green"
-      },
-      alerts: (aResp.results||[]).map(a=>({log_type:a.log_type, log_entry:a.log_entry})),
-      change_orders: (coResp.results||[]).map(co=>({title:co.title, status:co.status}))
-    });
-  } catch(err) {
-    return res.status(500).json({ error: err.message });
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
+
+  const { slug } = req.query;
+  if (!slug) return res.status(400).json({ error: "Missing slug parameter" });
+
+  const BASE = process.env.RELEVANCE_BASE;
+  const AUTH = process.env.RELEVANCE_AUTH;
+
+  if (!BASE || !AUTH) {
+    return res.status(500).json({ error: "Missing RELEVANCE_BASE or RELEVANCE_AUTH" });
+  }
+
+  const headers = {
+    Authorization: AUTH,
+    "Content-Type": "application/json"
+  };
+
+  // Alle Endpoints die wir probieren — erster der funktioniert gewinnt
+  const attempts = [
+    {
+      label: "GET /documents?page_size=100",
+      fn: () => fetch(`${BASE}/datasets/gaabs_projects/documents?page_size=100`, {
+        method: "GET", headers
+      })
+    },
+    {
+      label: "POST /documents/list",
+      fn: () => fetch(`${BASE}/datasets/gaabs_projects/documents/list`, {
+        method: "POST", headers,
+        body: JSON.stringify({ page_size: 100 })
+      })
+    },
+    {
+      label: "POST /documents/filter",
+      fn: () => fetch(`${BASE}/datasets/gaabs_projects/documents/filter`, {
+        method: "POST", headers,
+        body: JSON.stringify({ filters: [], page_size: 100 })
+      })
+    }
+  ];
+
+  const triedErrors = [];
+
+  for (const attempt of attempts) {
+    try {
+      const r = await attempt.fn();
+      const text = await r.text();
+
+      if (r.ok) {
+        let data = {};
+        try { data = JSON.parse(text); } catch { data = {}; }
+
+        const allDocs = data.results || data.documents || data.items || [];
+        const project = allDocs.find(doc => doc.client_slug === slug);
+
+        if (!project) {
+          return res.status(404).json({
+            error: `No project found for slug: ${slug}`,
+            endpoint_used: attempt.label,
+            total_docs: allDocs.length
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          endpoint_used: attempt.label,
+          project
+        });
+      }
+
+      triedErrors.push({ endpoint: attempt.label, status: r.status, body: text.slice(0, 200) });
+
+    } catch (err) {
+      triedErrors.push({ endpoint: attempt.label, error: err.message });
+    }
+  }
+
+  // Keiner hat funktioniert
+  return res.status(502).json({
+    error: "All Relevance endpoints failed",
+    tried: triedErrors
+  });
 }
