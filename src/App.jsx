@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import WorkingHoursWidget from './components/WorkingHoursWidget';
 
-// ─── GAABS VPE LOGIC ─────────────────────────────────────────────────────────
+// ── GAABS VPE LOGIC ──────────────────────────────────────────────────────────────────
 const LEVEL_RATES = {
   E1: { daily: 2200, hourly: 275, quality_factor: 2.5, label: "Founder" },
   E2: { daily: 1400, hourly: 175, quality_factor: 1.8, label: "Lead" },
@@ -28,11 +29,11 @@ const AGENTS = [
 ];
 
 const PROJECTS = [
-  { id:"PROJ-001", name:"Nike AW26 Campaign",    client:"Nike",    progress:67, vav:845920, status:"stable",   phase:"Production",    scope_health:"green", change_orders:0, velocity:3.2 },
-  { id:"PROJ-002", name:"Zalando Spring Drop",    client:"Zalando", progress:34, vav:22130,  status:"fast",     phase:"Pre-Production",scope_health:"green", change_orders:1, velocity:2.8 },
-  { id:"PROJ-003", name:"Porsche Heritage Film",  client:"Porsche", progress:89, vav:68400,  status:"delivery", phase:"Post",          scope_health:"yellow",change_orders:2, velocity:4.1 },
-  { id:"PROJ-004", name:"LVMH Brand Strategy",    client:"LVMH",    progress:12, vav:16790,  status:"on_hold",  phase:"Briefing",      scope_health:"green", change_orders:0, velocity:1.0 },
-  { id:"PROJ-005", name:"USM Digital Campaign",   client:"USM",     progress:45, vav:31200,  status:"stable",   phase:"Creative",      scope_health:"green", change_orders:1, velocity:2.4 },
+  { id:"PROJ-001", name:"Nike AW26 Campaign",    client:"Nike",    progress:67, vav:845920, status:"stable",   phase:"Production",    scope_health:"green",  change_orders:0, velocity:3.2 },
+  { id:"PROJ-002", name:"Zalando Spring Drop",   client:"Zalando", progress:34, vav:22130,  status:"fast",     phase:"Pre-Production",scope_health:"green",  change_orders:1, velocity:2.8 },
+  { id:"PROJ-003", name:"Porsche Heritage Film", client:"Porsche", progress:89, vav:68400,  status:"delivery", phase:"Post",          scope_health:"yellow", change_orders:2, velocity:4.1 },
+  { id:"PROJ-004", name:"LVMH Brand Strategy",   client:"LVMH",    progress:12, vav:16790,  status:"on_hold",  phase:"Briefing",      scope_health:"green",  change_orders:0, velocity:1.0 },
+  { id:"PROJ-005", name:"USM Digital Campaign",  client:"USM",     progress:45, vav:31200,  status:"stable",   phase:"Creative",      scope_health:"green",  change_orders:1, velocity:2.4 },
 ];
 
 // VPE Calculation engine
@@ -51,7 +52,7 @@ const TOTAL_VAV = AGENTS.reduce((s, a) => s + a.vav_today, 0);
 const TOTAL_API_COST = 2130;
 const ARBITRAGE_MARGIN = TOTAL_VAV - TOTAL_API_COST;
 
-// ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
+// ── DESIGN TOKENS ──────────────────────────────────────────────────────────────────
 const C = {
   bg:       "#0B0F14",
   surface:  "#111820",
@@ -75,7 +76,7 @@ const C = {
   E4:       "#6B7280",
 };
 
-// ─── MINI COMPONENTS ─────────────────────────────────────────────────────────
+// ── MINI COMPONENTS ──────────────────────────────────────────────────────────────────
 function Metric({ label, value, sub, trend, color = C.teal, size = "lg" }) {
   return (
     <div>
@@ -177,7 +178,6 @@ function Avatar({ initials, level, size = 28, pulse = false }) {
 // Gauge / Speedometer
 function Gauge({ value, max, label, color = C.teal }) {
   const pct = Math.min(value / max, 1);
-  const angle = -135 + pct * 270;
   const r = 44;
   const cx = 56, cy = 56;
   const startAngle = -135 * (Math.PI / 180);
@@ -215,7 +215,7 @@ function MiniBar({ value, maxValue, color }) {
   );
 }
 
-// Activity heat strip (like the GitHub contribution graph but horizontal)
+// Activity heat strip
 function ActivityStrip({ tasks, color }) {
   const cells = Array.from({ length: 28 }, (_, i) => {
     const intensity = i < tasks ? Math.min(1, 0.3 + (i / tasks) * 0.7) : 0;
@@ -262,7 +262,7 @@ function DonutChart({ data, size = 100 }) {
   );
 }
 
-// ─── BOARD DASHBOARD ─────────────────────────────────────────────────────────
+// ── BOARD DASHBOARD ───────────────────────────────────────────────────────────────────
 function BoardDashboard({ tickerValue }) {
   const activeAgents = AGENTS.filter(a => a.active);
   const alertAgents  = AGENTS.filter(a => a.alert);
@@ -284,7 +284,7 @@ function BoardDashboard({ tickerValue }) {
   return (
     <div style={{ display: "flex", gap: 16, flexDirection: "column" }}>
 
-      {/* Row 1 — 3 Financial KPIs */}
+      {/* Row 1 – 3 Financial KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
 
         {/* VAV */}
@@ -298,7 +298,7 @@ function BoardDashboard({ tickerValue }) {
           <div style={{ fontSize: 11, color: C.green, marginTop: 4, fontWeight: 600 }}>
             ↑ +22% vs human parity
           </div>
-          {/* Sparkline */}
+          {/* Sparkling */}
           <div style={{ marginTop: 12, display: "flex", alignItems: "flex-end", gap: 2, height: 32 }}>
             {[180,220,310,280,420,380,510,490,620,580,720,848].map((v,i) => (
               <div key={i} style={{
@@ -352,7 +352,7 @@ function BoardDashboard({ tickerValue }) {
         </Card>
       </div>
 
-      {/* Row 2 — Revenue by Level + Task Type */}
+      {/* Row 2 – Revenue by Level + Task Type */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
 
         <Card>
@@ -395,7 +395,7 @@ function BoardDashboard({ tickerValue }) {
         </Card>
       </div>
 
-      {/* Row 3 — Agent Utilization + Alerts + Projects */}
+      {/* Row 3 – Agent Utilization + Alerts + Projects */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
 
         {/* Agent Utilization */}
@@ -445,7 +445,7 @@ function BoardDashboard({ tickerValue }) {
         </div>
       </div>
 
-      {/* Row 4 — Top Projects */}
+      {/* Row 4 – Top Projects */}
       <Card>
         <div style={{ fontSize: 9, color: C.muted, letterSpacing: 1.5, fontWeight: 700, marginBottom: 14 }}>
           TOP 5 ACTIVE PROJECTS
@@ -481,11 +481,10 @@ function BoardDashboard({ tickerValue }) {
   );
 }
 
-// ─── CLIENT DASHBOARD ─────────────────────────────────────────────────────────
+// ── CLIENT DASHBOARD ──────────────────────────────────────────────────────────────────
 function ClientDashboard({ project, tick }) {
   const activeAgents = AGENTS.filter(a => a.active).slice(0, 6);
 
-  // Milestone data
   const milestones = [
     { label: "Strategy Paper", done: true,  date: "Apr 28" },
     { label: "Creative Brief",  done: true,  date: "May 5"  },
@@ -521,7 +520,7 @@ function ClientDashboard({ project, tick }) {
         </div>
       </div>
 
-      {/* Row 1 — 3 Client KPIs */}
+      {/* Row 1 – 3 Client KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
 
         <Card style={{ textAlign: "center" }}>
@@ -648,12 +647,18 @@ function ClientDashboard({ project, tick }) {
   );
 }
 
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+// ── MAIN APP ──────────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [view, setView]           = useState("board");
+  const [view, setView]            = useState("board");
   const [activeProject, setProj]  = useState(PROJECTS[0]);
-  const [tick, setTick]           = useState(0);
+  const [tick, setTick]            = useState(0);
   const [tickerValue, setTicker]  = useState(TOTAL_VAV - 12000);
+
+  // ── P0 FIX: Kalender + Suche State ──────────────────────────
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [searchOpen,   setSearchOpen]   = useState(false);
+  const [searchQuery,  setSearchQuery]  = useState('');
+  // ────────────────────────────────────────────────────────────
 
   // Animate ticker and live activity
   useEffect(() => {
@@ -771,11 +776,82 @@ export default function App() {
               <span style={{ fontSize: 10, color: C.muted }}>LIVE</span>
             </div>
             <div style={{ fontSize: 11, color: C.muted }}>Admin E0 ▾</div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 6, padding: "5px 10px", fontSize: 11, color: C.muted }}>
-              📅 April 2026
+
+            {/* P0 FIX 1: Kalender-Button — war <div> ohne onClick, jetzt interaktiv */}
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => { setCalendarOpen(prev => !prev); setSearchOpen(false); }}
+                style={{
+                  background: C.card, border: `1px solid ${C.border}`, borderRadius: 6,
+                  padding: "5px 10px", fontSize: 11, color: C.muted, cursor: "pointer"
+                }}
+                aria-label="Kalender öffnen"
+              >
+                📅 April 2026
+              </button>
+              {calendarOpen && (
+                <div style={{
+                  position: 'absolute', top: '36px', right: 0,
+                  background: C.card, border: `1px solid ${C.border2}`,
+                  borderRadius: 8, padding: 16, zIndex: 999,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.4)', minWidth: 180
+                }}>
+                  <p style={{ margin: 0, fontWeight: 600, color: C.text, fontSize: 13 }}>📅 Kalender</p>
+                  <p style={{ fontSize: 11, color: C.muted, marginTop: 6, marginBottom: 8 }}>Integration folgt in P1</p>
+                  <button
+                    onClick={() => setCalendarOpen(false)}
+                    style={{
+                      fontSize: 11, cursor: 'pointer', background: C.border,
+                      border: 'none', borderRadius: 4, padding: '4px 8px', color: C.muted
+                    }}
+                  >
+                    Schließen
+                  </button>
+                </div>
+              )}
             </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 6, padding: "5px 10px", fontSize: 11, color: C.muted }}>
-              🔍 Search...
+
+            {/* P0 FIX 2: Suche-Button — war <div> ohne onClick, jetzt interaktiv */}
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => { setSearchOpen(prev => !prev); setCalendarOpen(false); }}
+                style={{
+                  background: searchQuery ? `${C.teal}22` : C.card,
+                  border: `1px solid ${searchQuery ? C.teal : C.border}`,
+                  borderRadius: 6, padding: "5px 10px", fontSize: 11,
+                  color: searchQuery ? C.teal : C.muted, cursor: "pointer"
+                }}
+                aria-label="Suche öffnen"
+              >
+                🔍 {searchQuery ? searchQuery.slice(0, 12) + (searchQuery.length > 12 ? '…' : '') : 'Search...'}
+              </button>
+              {searchOpen && (
+                <div style={{
+                  position: 'absolute', top: '36px', right: 0,
+                  background: C.card, border: `1px solid ${C.border2}`,
+                  borderRadius: 8, padding: 12, zIndex: 999,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.4)'
+                }}>
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Work Items suchen…"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    onKeyDown={e => e.key === 'Escape' && setSearchOpen(false)}
+                    style={{
+                      padding: '8px 12px', border: `1px solid ${C.border2}`,
+                      borderRadius: 6, width: 220, fontSize: 14,
+                      background: C.surface, color: C.text, outline: 'none'
+                    }}
+                  />
+                  {searchQuery && (
+                    <div style={{ marginTop: 6, fontSize: 10, color: C.muted }}>
+                      Filtert Work Items nach Titel, Beschreibung, Owner
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -796,6 +872,10 @@ export default function App() {
                 </div>
               </div>
               <BoardDashboard tickerValue={tickerValue} />
+              {/* P0 FIX 3: Working Hours Widget — static, approved by Rebecca 24.04.2026 */}
+              <div style={{ marginTop: 16 }}>
+                <WorkingHoursWidget />
+              </div>
             </>
           )}
 
@@ -851,7 +931,7 @@ export default function App() {
               {/* VPE Table */}
               <Card>
                 <div style={{ fontSize: 9, color: C.muted, letterSpacing: 1.5, fontWeight: 700, marginBottom: 14 }}>
-                  INTERNAL VERRECHNUNGSMATRIX — LIVE AGENTS
+                  INTERNE VERRECHNUNGSMATRIX – LIVE AGENTS
                 </div>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
@@ -863,14 +943,14 @@ export default function App() {
                   </thead>
                   <tbody>
                     {[
-                      { agent: AGENTS[0], task:"Strategy Validation", hours:1.5, express: false },
-                      { agent: AGENTS[2], task:"Creative Concept",    hours:4.0, express: false },
-                      { agent: AGENTS[8], task:"Brand Copy 5x",       hours:3.0, express: false },
-                      { agent: AGENTS[9], task:"CGI Key Visual",      hours:2.0, express: true  },
-                      { agent: AGENTS[7], task:"Art Direction",        hours:3.5, express: false },
-                      { agent: AGENTS[12],task:"Controlling Report",  hours:6.0, express: false },
-                      { agent: AGENTS[14],task:"Trend Research",      hours:2.5, express: false },
-                      { agent: AGENTS[15],task:"PM Admin",            hours:1.0, express: false },
+                      { agent: AGENTS[0],  task:"Strategy Validation", hours:1.5, express: false },
+                      { agent: AGENTS[2],  task:"Creative Concept",    hours:4.0, express: false },
+                      { agent: AGENTS[8],  task:"Brand Copy 5x",       hours:3.0, express: false },
+                      { agent: AGENTS[9],  task:"CGI Key Visual",      hours:2.0, express: true  },
+                      { agent: AGENTS[7],  task:"Art Direction",        hours:3.5, express: false },
+                      { agent: AGENTS[12], task:"Controlling Report",  hours:6.0, express: false },
+                      { agent: AGENTS[14], task:"Trend Research",      hours:2.5, express: false },
+                      { agent: AGENTS[15], task:"PM Admin",            hours:1.0, express: false },
                     ].map((row, i) => {
                       const vpe = calcVPE(row.agent, row.hours, row.task, row.express);
                       const bg = i % 2 === 0 ? "transparent" : "#ffffff04";
