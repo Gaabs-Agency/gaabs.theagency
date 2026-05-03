@@ -117,7 +117,7 @@ const x=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 const today=()=>new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'});
 
 let INV=null,REQ=null,STEP=1;
-const RS={avail:null,opts:new Set(),rate:'',rType:'day_rate',msg:'',ndaName:'',ndaOk:false};
+const RS={avail:null,opts:new Set(),rate:'',rType:'day_rate',msg:'',portfolio:'',ndaName:'',ndaOk:false};
 
 // ═══ INIT ═══════════════════════════════════════════════════
 async function init(){
@@ -125,7 +125,7 @@ async function init(){
   if(!token){showErr('invalid');return;}
   show('loading');
   try{
-    const res=await fetch(`${SB}/rest/v1/artbuying_invites?token=eq.${encodeURIComponent(token)}&select=*,artbuying_requests(project_name,client_name,craft_phase,craft_role,briefing_raw,timing_type,timing_fixed_from,timing_fixed_to,timing_options,rate_type,rate_amount,rate_notes,response_deadline,buyout_description,buyout_territory,buyout_duration,buyout_channels,nda_required,nda_text,nda_language)`,{headers:H});
+    const res=await fetch(`${SB}/rest/v1/artbuying_invites?token=eq.${encodeURIComponent(token)}&select=*,artbuying_requests(project_name,client_name,craft_phase,craft_role,briefing_raw,timing_type,timing_fixed_from,timing_fixed_to,timing_options,rate_type,rate_amount,rate_notes,response_deadline,buyout_description,buyout_territory,buyout_duration,buyout_channels,nda_required,nda_text,nda_language,travel_from)`,{headers:H});
     const data=await res.json();
     if(!data.length){showErr('notfound');return;}
     INV=data[0];REQ=INV.artbuying_requests;
@@ -214,6 +214,7 @@ function rBrief(){
   if(req?.timing_type==='fixed'){timH=`<div class="brow"><span class="blbl">Zeitraum</span><span style="font-weight:500">${x(req.timing_fixed_from||'TBC')}${req.timing_fixed_to?' → '+x(req.timing_fixed_to):''}</span></div>`;}
   else if(req?.timing_type==='options'&&req?.timing_options?.length){timH=`<div style="font-size:12px;color:var(--m);margin-bottom:7px">Mehrere Terminoptionen — bitte im nächsten Schritt angeben, welche passen.</div>`+(req.timing_options||[]).map(o=>`<div class="brow"><span class="blbl">${x(o.label)}</span><span style="font-weight:500">${x(o.from)}${o.to&&o.to!==o.from?' → '+x(o.to):''}</span></div>`).join('');}
   else timH=`<div class="brow"><span class="blbl">Timing</span><span style="color:var(--m)">Wird noch festgelegt</span></div>`;
+  const travelFrom=req?.travel_from||null;
   let rateT='Honorar: Bitte im nächsten Schritt angeben.';
   if(req?.rate_type==='day_rate'&&req?.rate_amount)rateT=`Budget: €${req.rate_amount} / Tag`;
   else if(req?.rate_type==='total'&&req?.rate_amount)rateT=`Budget: €${req.rate_amount} total`;
@@ -229,6 +230,7 @@ function rBrief(){
     <div class="brow"><span class="blbl">Projekt</span><span style="font-weight:500">${x(req?.project_name||'—')}</span></div>
     ${req?.client_name?`<div class="brow"><span class="blbl">Kunde</span><span style="font-weight:500">${x(req.client_name)}</span></div>`:''}
     <div class="brow"><span class="blbl">Position</span><span>${x(req?.craft_role||'—')}</span></div>
+    ${travelFrom?`<div class="divider"></div><div class="sec-hd">Anreise / Travel</div><div class="brow"><span class="blbl">Von / From</span><span style="font-weight:500">${x(travelFrom)}</span></div>`:''}
     ${brows.length?`<div class="divider"></div><div class="sec-hd">Details</div>${brows.map(r=>r.l?`<div class="brow"><span class="blbl">${x(r.l)}</span><span>${x(r.v)}</span></div>`:`<div style="font-size:14px;color:var(--m);line-height:1.65;margin-bottom:7px">${x(r.v)}</div>`).join('')}`:''}
     <div class="divider"></div>
     <div class="sec-hd">Timing</div>${timH}
@@ -275,8 +277,13 @@ function rResp(){
         </div>
       </div>
     </div>
-    <div class="fld"><label>Nachricht an Art Buyer <span style="font-weight:400;color:var(--l)">(optional)</span></label>
-      <textarea id="inp-m" placeholder="Fragen, Anmerkungen, Konditionen, besondere Ausstattung…" oninput="RS.msg=this.value">${RS.msg}</textarea>
+    <div class="fld"><label>Portfolio-Link <span style="font-weight:400;color:var(--l)">(optional)</span></label>
+      <input type="url" id="inp-portfolio" placeholder="https://yourportfolio.com" value="${RS.portfolio||''}" oninput="RS.portfolio=this.value" style="font-size:15px;padding:10px 12px;border:.5px solid var(--b2);border-radius:var(--r);width:100%;outline:none;font-family:inherit">
+    </div>
+    <div class="fld">
+      <label>Kurze Anmerkung <span style="font-weight:400;color:var(--l)">(optional — max. 280 Zeichen)</span></label>
+      <textarea id="inp-m" placeholder="z. B. Equipment, Konditionen, Verfügbarkeitsvorbehalt…" maxlength="280" oninput="RS.msg=this.value;document.getElementById('char-count').textContent=this.value.length" style="min-height:72px">${RS.msg}</textarea>
+      <div style="text-align:right;font-size:11px;color:var(--l);margin-top:3px"><span id="char-count">0</span> / 280</div>
     </div>
     <div class="a-warn" id="a-warn">Bitte oben angeben, ob du verfügbar bist.</div>
     <button class="btn bp" id="sub-btn" onclick="doSubmit()" ${RS.avail?'':'disabled'}>Antwort absenden →</button>
@@ -299,7 +306,7 @@ async function doSubmit(){
       availability_notes:notes||null,
       proposed_rate:RS.rate?parseFloat(RS.rate):null,
       proposed_rate_type:RS.rType,
-      talent_message:RS.msg||null,
+      talent_message:RS.msg||null,talent_portfolio_url:RS.portfolio||null,talent_note:RS.msg||null,
       availability_option_a:RS.opts.has('Option A'),
       availability_option_b:RS.opts.has('Option B'),
       availability_option_c:RS.opts.has('Option C'),
