@@ -234,9 +234,9 @@ function rBrief(){
   if(req?.timing_type==='fixed'){timH=`<div class="brow"><span class="blbl">Zeitraum</span><span style="font-weight:500">${x(req.timing_fixed_from||'TBC')}${req.timing_fixed_to?' → '+x(req.timing_fixed_to):''}</span></div>`;}
   else if(req?.timing_type==='options'&&req?.timing_options?.length){timH=`<div style="font-size:12px;color:var(--m);margin-bottom:7px">Mehrere Terminoptionen — bitte im nächsten Schritt angeben, welche passen.</div>`+(req.timing_options||[]).map(o=>`<div class="brow"><span class="blbl">${x(o.label)}</span><span style="font-weight:500">${x(o.from)}${o.to&&o.to!==o.from?' → '+x(o.to):''}</span></div>`).join('');}
   else timH=`<div class="brow"><span class="blbl">Timing</span><span style="color:var(--m)">Wird noch festgelegt</span></div>`;
-  let rateT='Honorar: Bitte im nächsten Schritt angeben.';
-  if(req?.rate_type==='day_rate'&&req?.rate_amount)rateT=`Budget: €${req.rate_amount} / Tag`;
-  else if(req?.rate_type==='total'&&req?.rate_amount)rateT=`Budget: €${req.rate_amount} total`;
+  let rateT='Verhandelbar — bitte deinen Vorschlag im nächsten Schritt angeben.';
+  if(req?.rate_type==='day_rate'&&req?.rate_amount)rateT=`€${req.rate_amount} / Tag`;
+  else if(req?.rate_type==='total'&&req?.rate_amount)rateT=`€${req.rate_amount} total`;
   if(req?.rate_notes)rateT+=` (${x(req.rate_notes)})`;
   const buyParts=[req?.buyout_description,req?.buyout_territory&&'Territory: '+req.buyout_territory,req?.buyout_duration&&'Duration: '+req.buyout_duration,req?.buyout_channels&&'Channels: '+req.buyout_channels].filter(Boolean);
 
@@ -255,7 +255,7 @@ function rBrief(){
     <div class="sec-hd">Timing</div>${timH}
     <div class="divider"></div>
     <div class="sec-hd">Honorar & Usage</div>
-    <div class="brow"><span class="blbl">Rate</span><span style="color:var(--m)">${x(rateT)}</span></div>
+    <div class="brow"><span class="blbl">Budget</span><span style="color:var(--m)">${x(rateT)}</span></div>
     ${buyParts.length?`<div class="brow" style="align-items:flex-start"><span class="blbl">Usage</span><div style="font-size:13px;color:var(--m);line-height:1.7">${buyParts.map(x).join('<br>')}</div></div>`:''}
     ${dlS?`<div class="divider"></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:13px;color:var(--m)">Bitte antworten bis</span><span class="dl-pill"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 2"/></svg>${x(dlS)}</span></div>`:''}
     <div style="margin-top:20px"><button class="btn bp" onclick="STEP=3;go()">Weiter zur Rückmeldung →</button></div>
@@ -286,15 +286,31 @@ function rResp(){
       </div>`).join('')}
     </div>`:''}
     <div id="rate-w" style="${RS.avail==='not_available'?'display:none':''}">
-      <div class="fld"><label>Dein Honorar</label>
-        <div class="g2">
-          <input type="number" id="inp-r" placeholder="Betrag (EUR)" value="${RS.rate}" oninput="RS.rate=this.value" min="0">
-          <select id="inp-rt" onchange="RS.rType=this.value">
-            <option value="day_rate" ${RS.rType==='day_rate'?'selected':''}>Pro Tag</option>
-            <option value="total" ${RS.rType==='total'?'selected':''}>Total / Pauschal</option>
-          </select>
-        </div>
-      </div>
+      ${req?.rate_type==='negotiable'
+        ? `<div class="fld"><label>Dein Honorar-Vorschlag</label>
+            <div class="g2">
+              <input type="number" id="inp-r" placeholder="Betrag (EUR)" value="${RS.rate}" oninput="RS.rate=this.value" min="0">
+              <select id="inp-rt" onchange="RS.rType=this.value">
+                <option value="day_rate" ${RS.rType==='day_rate'?'selected':''}>Pro Tag</option>
+                <option value="total" ${RS.rType==='total'?'selected':''}>Total / Pauschal</option>
+              </select>
+            </div>
+           </div>`
+        : `<div class="fld">
+            <label>Budget-Bestätigung</label>
+            <div style="background:var(--bg);border:.5px solid var(--b2);border-radius:var(--r);padding:10px 13px;font-size:14px;margin-bottom:8px">
+              Angebotenes Budget: <strong>${x(rateT)}</strong>
+            </div>
+            <label style="margin-top:6px">Abweichender Vorschlag? <span style="font-weight:400;color:var(--l)">(leer lassen wenn du das Budget akzeptierst)</span></label>
+            <div class="g2">
+              <input type="number" id="inp-r" placeholder="Alternativbetrag (EUR)" value="${RS.rate}" oninput="RS.rate=this.value" min="0">
+              <select id="inp-rt" onchange="RS.rType=this.value">
+                <option value="day_rate" ${RS.rType==='day_rate'?'selected':''}>Pro Tag</option>
+                <option value="total" ${RS.rType==='total'?'selected':''}>Total / Pauschal</option>
+              </select>
+            </div>
+          </div>`
+      }
     </div>
     <div id="travel-w" style="${RS.avail==='not_available'?'display:none':''}">
       <div class="fld"><label>Anreise von / Travelling from <span style="font-weight:400;color:var(--l)">(Ort oder Stadt)</span></label>
