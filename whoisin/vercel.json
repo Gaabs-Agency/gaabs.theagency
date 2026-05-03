@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "name": "whoisin",
+  "routes": [
+    { "src": "/whoisin-talent", "dest": "/whoisin-talent.html" },
+    { "src": "/", "dest": "/index.html" }
+  ]
+}
