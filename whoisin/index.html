@@ -506,7 +506,35 @@ window.currentOnDone=onDone;
 async function confirmBooking(invId,onDone=null){const inv=ST.boardData.find(x=>x.id===invId);if(!inv)return;const req=inv.artbuying_requests;const fr=document.getElementById('conf-rate')?.value?parseFloat(document.getElementById('conf-rate').value):inv.proposed_rate;const frt=document.getElementById('conf-rate-type')?.value||inv.proposed_rate_type||'day_rate';const fd=document.getElementById('conf-dates')?.value||null;const note=document.getElementById('conf-note')?.value||null;
 await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${invId}`,{method:'PATCH',headers:H,body:JSON.stringify({decision:'confirmed',decision_at:new Date().toISOString(),decision_by:'art_buyer',booking_confirmed_at:new Date().toISOString(),final_rate:fr,final_dates:fd})});
 await fetch(`${SB}/rest/v1/artbuying_booking_log`,{method:'POST',headers:H,body:JSON.stringify({invite_id:invId,request_id:inv.request_id,contact_name:inv.contact_name,contact_email:inv.contact_email,craft_phase:req?.craft_phase,craft_role:req?.craft_role,final_rate:fr,final_rate_type:frt,final_dates:fd,nda_accepted:!!inv.nda_accepted_at,booking_confirmed_by_talent:!!inv.booking_confirmed_by_talent_at,notes:note})});
-closeModal();toast('✓ Booking confirmed and logged');if(typeof onDone==='function')onDone();else loadBoard();}
+closeModal();toast('✓ Booking confirmed and logged');
+
+  // Check for other holds on same request/role → offer to release them
+  const confirmed=ST.boardData.find(x=>x.id===invId);
+  if(confirmed){
+    const sameRole=ST.boardData.filter(x=>
+      x.id!==invId &&
+      x.request_id===confirmed.request_id &&
+      ['first_option','pending'].includes(x.decision) &&
+      x.responded_at &&
+      x.decision!=='declined'
+    );
+    if(sameRole.length>0){
+      const names=sameRole.map(x=>x.contact_name).join(', ');
+      showModal(`<div class="modal-title">Andere Kandidaten freigeben?</div>
+        <div class="modal-sub">Für diese Rolle stehen noch <strong>${sameRole.length}</strong> weitere Kandidat${sameRole.length>1?'en':''} auf Hold oder haben geantwortet:</div>
+        <div style="background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.8">
+          ${sameRole.map(x=>`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;padding:2px 8px;background:var(--bl-bg);color:var(--bl);border-radius:20px">${x.decision==='first_option'?'Hold':'Geantwortet'}</span> ${esc(x.contact_name)}</div>`).join('')}
+        </div>
+        <div class="brow-btns" style="margin-top:0;padding-top:14px">
+          <button class="btn bg2" onclick="closeModal();${typeof onDone==='function'?'(window._boardOnDone&&window._boardOnDone())':'loadBoard()'}">Jetzt nicht</button>
+          <button class="btn bp" onclick="releaseHolds(${JSON.stringify(sameRole.map(x=>x.id))})">Alle ${sameRole.length} freigeben &amp; Release-Email senden</button>
+        </div>`);
+      window._boardOnDone = typeof onDone==='function' ? onDone : null;
+      return;
+    }
+  }
+  if(typeof onDone==='function') onDone(); else loadBoard();
+}
 
 // POOL
 function openCounterModal(invId){
@@ -545,6 +573,20 @@ function renderPool(){const q=(document.getElementById('pool-q')?.value||'').toL
 // MODAL HELPERS
 function showModal(html){document.getElementById('modal-wrap').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;}
 function closeModal(){document.getElementById('modal-wrap').innerHTML='';}
+
+async function releaseHolds(ids){
+  closeModal();
+  await Promise.all(ids.map(id=>
+    fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${id}`,{
+      method:'PATCH',headers:H,
+      body:JSON.stringify({decision:'declined',decision_at:new Date().toISOString(),decision_by:'art_buyer'})
+    })
+  ));
+  toast(`${ids.length} Kandidat${ids.length>1?'en':''} freigegeben — Release-Emails werden gesendet`);
+  if(window._boardOnDone) window._boardOnDone();
+  else loadBoard();
+  window._boardOnDone=null;
+}
 function showAlert(type,msg){['ok','err'].forEach(t=>{const el=document.getElementById(t+'-msg');el.classList.remove('on');el.textContent='';});const el=document.getElementById(type+'-msg');el.textContent=msg;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),5000);}
 let toastT;function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
 
