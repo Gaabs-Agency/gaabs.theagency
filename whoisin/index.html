@@ -259,14 +259,18 @@ input[type=checkbox]{width:14px;height:14px;accent-color:var(--text);cursor:poin
     <div class="stat"><div class="stat-n" id="bs-conf">—</div><div class="stat-l">Confirmed</div></div>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-    <input type="text" id="bq" placeholder="Filter…" oninput="renderBoard()" style="font-size:13px;height:32px;width:190px">
+    <input type="text" id="bq" placeholder="Name, Projekt…" oninput="renderBoard()" style="font-size:13px;height:32px;width:160px">
+    <select id="board-proj-filter" onchange="renderBoard()" style="height:32px;font-size:13px;border:.5px solid var(--border2);border-radius:var(--r);padding:0 8px;min-width:160px;max-width:220px">
+      <option value="">Alle Projekte</option>
+    </select>
     <div class="seg" id="bf-seg">
-      <button class="sb on" onclick="setBF('all',this)">All</button>
-      <button class="sb" onclick="setBF('awaiting',this)">Awaiting</button>
-      <button class="sb" onclick="setBF('available',this)">Available</button>
-      <button class="sb" onclick="setBF('confirmed',this)">Confirmed</button>
+      <button class="sb on" onclick="setBF('all',this)">Alle</button>
+      <button class="sb" onclick="setBF('awaiting',this)">Ausstehend</button>
+      <button class="sb" onclick="setBF('available',this)">Verfügbar</button>
+      <button class="sb" onclick="setBF('hold',this)">Hold</button>
+      <button class="sb" onclick="setBF('confirmed',this)">Bestätigt</button>
     </div>
-    <button class="btn bg2 bsm" onclick="loadBoard()" style="margin-left:auto">↻ Refresh</button>
+    <button class="btn bg2 bsm" onclick="loadBoard()" style="margin-left:auto">↻</button>
   </div>
   <div class="btable">
     <div class="bth" style="grid-template-columns:32px 1fr 130px 100px 90px 160px">
@@ -397,8 +401,27 @@ function removeInvite(email){ST.invites=ST.invites.filter(x=>x.email!==email);ST
 function renderInviteList(){document.getElementById('inv-list').innerHTML=ST.invites.map(c=>{const ini=c.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);const badge=c.src==='pool'?`<span class="badge bbl" style="font-size:10px;margin-left:5px">BRAIN</span>`:'';return `<div class="inv-item"><div class="av">${ini}</div><div><div style="font-size:13px;font-weight:500">${esc(c.name)}${badge}</div><div style="font-size:11px;color:var(--light)">${esc(c.email)}</div></div><button class="irm" onclick="removeInvite('${esc(c.email)}')" title="Remove">×</button></div>`;}).join('');}
 
 // SEND
+function addRoleToProject(reqId,projName,clientName){
+  // Pre-fill project + client, clear invites, keep settings
+  document.getElementById('f-proj').value=projName;
+  document.getElementById('f-client').value=clientName;
+  ST.invites=[];ST.selPool=new Map();
+  renderInviteList();renderTP();syncPv();
+  // Store parent request context
+  ST.parentRequestId=reqId;
+  showAlert('ok','Neue Rolle für "'+projName+'" — wähle Phase, Rolle und Talente.');
+}
 async function doSend(){if(!ST.invites.length){toast('Add at least one person');return;}if(!val('f-proj')){toast('Enter a project name');return;}const btn=document.getElementById('send-btn');btn.disabled=true;btn.innerHTML='<span class="spin"></span> Sending…';const deadline=val('d-date')?`${val('d-date')}T${val('d-time')||'18:00'}:00`:null;const payload={project_name:val('f-proj'),client_name:val('f-client')||null,art_buyer_name:document.getElementById('f-ab-select')?.selectedOptions[0]?.dataset.name||'Art Buying · The Gaabs',art_buyer_email:val('f-ab-select')||'artbuying@thegaabs.com',craft_phase:ST.phase,craft_role:getRole(),craft_role_custom:val('f-role-custom')||null,briefing_raw:[val('b-type')&&`Type: ${val('b-type')}`,val('b-del')&&`Deliverables: ${val('b-del')}`,val('b-exp')&&`Experience: ${val('b-exp')}`,val('b-loc')&&`Location: ${val('b-loc')}`,val('b-notes')].filter(Boolean).join('\n')||null,timing_type:ST.timingType,timing_fixed_from:ST.timingType==='fixed'?(val('tf-from')||null):null,timing_fixed_to:ST.timingType==='fixed'?(val('tf-to')||null):null,timing_options:ST.timingType==='options'?getOpts():[],rate_type:ST.rateType,rate_amount:val('r-amt')?parseFloat(val('r-amt')):null,rate_notes:val('r-notes')||null,response_deadline:deadline,buyout_description:val('buyout-desc')||null,buyout_territory:val('buyout-territory')||null,buyout_duration:val('buyout-duration')||null,buyout_channels:val('buyout-channels')||null,nda_required:document.getElementById('nda-req')?.checked||false,nda_text:getNdaText()||null,nda_language:ST.ndaLang,nda_version:'v2.0',status:'sent',created_by:'art_buyer'};
-try{const r=await fetch(`${SB}/rest/v1/artbuying_requests`,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(payload)});if(!r.ok)throw new Error(await r.text());const reqId=(await r.json())[0]?.id;const invArr=ST.invites.map(c=>({request_id:reqId,contact_name:c.name,contact_email:c.email,freelancer_id:c.fid||null,sent_at:new Date().toISOString()}));const ir=await fetch(`${SB}/rest/v1/artbuying_invites`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(invArr)});if(!ir.ok)throw new Error(await ir.text());showAlert('ok',`✓ Request sent — ${ST.invites.length} invite${ST.invites.length>1?'s':''} dispatched.`);toast(`${ST.invites.length} invites sent`);setTimeout(()=>{go('board',document.querySelectorAll('.nb')[1]);},1200);}catch(err){showAlert('err','Error: '+err.message);console.error(err);}finally{btn.disabled=false;btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8l12-6-6 12V8H2z"/></svg> Send invites';}}
+try{const r=await fetch(`${SB}/rest/v1/artbuying_requests`,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(payload)});if(!r.ok)throw new Error(await r.text());const reqId=(await r.json())[0]?.id;const invArr=ST.invites.map(c=>({request_id:reqId,contact_name:c.name,contact_email:c.email,freelancer_id:c.fid||null,sent_at:new Date().toISOString()}));const ir=await fetch(`${SB}/rest/v1/artbuying_invites`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(invArr)});if(!ir.ok)throw new Error(await ir.text());showAlert('ok',`✓ Request sent — ${ST.invites.length} invite${ST.invites.length>1?'s':''} dispatched.`);toast(`${ST.invites.length} invites sent`);
+    ST.lastRequestId=reqId;ST.lastProjectName=val('f-proj');ST.lastClientName=val('f-client');
+    setTimeout(()=>{
+      showModal(`<div class="modal-title">Einladungen gesendet ✓</div>
+        <div class="modal-sub">${ST.invites.length} Personen wurden eingeladen für <strong>${esc(val('f-proj'))}</strong>.</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+          <button class="btn bp" onclick="closeModal();go('board',document.querySelectorAll('.nb')[1])">Zum Response Board →</button>
+          <button class="btn bg2" onclick="closeModal();addRoleToProject('${reqId}','${val('f-proj').replace(/'/g,"\\'")}','${val('f-client').replace(/'/g,"\\'")}')">+ Weitere Rolle für dieses Projekt anfragen</button>
+        </div>`);
+    },400);}catch(err){showAlert('err','Error: '+err.message);console.error(err);}finally{btn.disabled=false;btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8l12-6-6 12V8H2z"/></svg> Send invites';}}
 
 // BOARD
 async function loadBoard(){document.getElementById('board-rows').innerHTML='<div class="empty">Loading…</div>';const r=await fetch(`${SB}/rest/v1/artbuying_invites?select=*,artbuying_requests(project_name,craft_role,timing_type,timing_options,timing_fixed_from,rate_type,rate_amount,nda_required,nda_text,buyout_description,buyout_territory,buyout_duration,buyout_channels)&order=created_at.desc&limit=200`,{headers:H});ST.boardData=await r.json();renderBoard();}
@@ -438,12 +461,24 @@ function openBulkBookingModal(ids){
   // Reuse single booking modal, on confirm continue with rest
   openBookingModal(id, ()=>openBulkBookingModal(rest));
 }
-function renderBoard(){const q=(document.getElementById('bq')?.value||'').toLowerCase();const f=ST.boardFilter;const filtered=ST.boardData.filter(i=>{const req=i.artbuying_requests;if(q&&!i.contact_name?.toLowerCase().includes(q)&&!req?.project_name?.toLowerCase().includes(q))return false;if(f==='awaiting'&&i.responded_at)return false;if(f==='available'&&i.availability_status!=='available')return false;if(f==='confirmed'&&i.decision!=='confirmed')return false;return true;});const d=ST.boardData;document.getElementById('bs-tot').textContent=d.length;document.getElementById('bs-resp').textContent=d.filter(i=>i.responded_at).length;document.getElementById('bs-avail').textContent=d.filter(i=>i.availability_status==='available').length;document.getElementById('bs-conf').textContent=d.filter(i=>i.decision==='confirmed').length;if(!filtered.length){document.getElementById('board-rows').innerHTML='<div class="empty">No entries.</div>';return;}
-const badge=i=>{if(i.decision==='confirmed')return '<span class="badge bok">Confirmed</span>';if(i.decision==='first_option')return '<span class="badge bbl">1st option</span>';if(i.decision==='declined')return '<span class="badge bn">Released</span>';if(!i.responded_at)return '<span class="badge bn">Awaiting</span>';if(i.availability_status==='available')return '<span class="badge bok">Available</span>';if(i.availability_status==='not_available')return '<span class="badge bre">Not available</span>';if(i.availability_status==='partially_available')return '<span class="badge bam">Partial</span>';return '<span class="badge bn">Responded</span>';};
-document.getElementById('board-rows').innerHTML=filtered.map(i=>{const req=i.artbuying_requests;const rate=i.proposed_rate?`€${i.proposed_rate}${i.proposed_rate_type==='day_rate'?'/d':' tot'}`:'—';const acts=[];if(i.availability_status==='available'&&i.decision==='pending')acts.push(`<button class="ap pi" onclick="setDec('${i.id}','first_option')">→ Hold</button>`);if(['available','partially_available','first_option'].includes(i.availability_status)&&i.decision!=='confirmed')acts.push(`<button class="ap pp" onclick="openBookingModal('${i.id}')">✓ Book</button>`);if(i.decision==='confirmed'&&!i.nda_sent_at)acts.push(`<button class="ap po" onclick="markNDA('${i.id}')">NDA →</button>`);if(!['declined','confirmed'].includes(i.decision))acts.push(`<button class="ap" onclick="setDec('${i.id}','declined')">Release</button>`);acts.push(`<button class="ap" onclick="copyLink('${i.token}')">Link</button>`);const ndaBadge=i.nda_accepted_at?`<span class="badge bok" style="font-size:10px;margin-left:4px">NDA ✓</span>`:(i.nda_sent_at?`<span class="badge bam" style="font-size:10px;margin-left:4px">NDA sent</span>`:'')+
+function renderBoard(){
+  // Populate project dropdown
+  const projSel=document.getElementById('board-proj-filter');
+  if(projSel){
+    const curProj=projSel.value;
+    const projects=[...new Map(ST.boardData.map(i=>[i.artbuying_requests?.project_name,i.artbuying_requests?.project_name])).entries()].filter(([k])=>k);
+    projSel.innerHTML='<option value="">Alle Projekte</option>'+projects.map(([k,v])=>`<option value="${esc(k)}" ${curProj===k?'selected':''}>${esc(v)}</option>`).join('');
+  }
+  const projFilter=projSel?.value||'';
+  const q=(document.getElementById('bq')?.value||'').toLowerCase();const f=ST.boardFilter;const filtered=ST.boardData.filter(i=>{const req=i.artbuying_requests;if(projFilter&&req?.project_name!==projFilter)return false;if(q&&!i.contact_name?.toLowerCase().includes(q)&&!req?.project_name?.toLowerCase().includes(q))return false;if(f==='awaiting'&&i.responded_at)return false;if(f==='available'&&i.availability_status!=='available')return false;if(f==='hold'&&i.decision!=='first_option')return false;if(f==='confirmed'&&i.decision!=='confirmed')return false;return true;});const d=ST.boardData;document.getElementById('bs-tot').textContent=d.length;document.getElementById('bs-resp').textContent=d.filter(i=>i.responded_at).length;document.getElementById('bs-avail').textContent=d.filter(i=>i.availability_status==='available').length;document.getElementById('bs-conf').textContent=d.filter(i=>i.decision==='confirmed').length;if(!filtered.length){document.getElementById('board-rows').innerHTML='<div class="empty">No entries.</div>';return;}
+const badge=i=>{if(i.decision==='confirmed')return '<span class="badge bok">Confirmed</span>';if(i.decision==='first_option')return '<span class="badge bbl">Hold / 1st Option</span>';if(i.decision==='declined')return '<span class="badge bn">Released</span>';if(!i.responded_at)return '<span class="badge bn">Awaiting</span>';if(i.availability_status==='available')return '<span class="badge bok">Available</span>';if(i.availability_status==='not_available')return '<span class="badge bre">Not available</span>';if(i.availability_status==='partially_available')return '<span class="badge bam">Partial</span>';return '<span class="badge bn">Responded</span>';};
+document.getElementById('board-rows').innerHTML=filtered.map(i=>{const req=i.artbuying_requests;const rateDisp=i.proposed_rate?`€${i.proposed_rate}${i.proposed_rate_type==='day_rate'?'/d':' tot'}`:'—';
+    const counterDisp=i.counter_rate?`<div style="font-size:10px;color:var(--am)">⇄ €${i.counter_rate}${i.counter_rate_type==='day_rate'?'/d':' tot'}</div>`:'';
+    const rate=rateDisp;const acts=[];if(i.availability_status==='available'&&i.decision==='pending')acts.push(`<button class="ap pi" onclick="setDec('${i.id}','first_option')">→ Hold</button>`);if(['available','partially_available','first_option'].includes(i.availability_status)&&i.decision!=='confirmed')acts.push(`<button class="ap pp" onclick="openBookingModal('${i.id}')">✓ Book</button>`);if(i.decision==='confirmed'&&!i.nda_sent_at)acts.push(`<button class="ap po" onclick="markNDA('${i.id}')">NDA →</button>`);if(!['declined','confirmed'].includes(i.decision))acts.push(`<button class="ap" onclick="setDec('${i.id}','declined')">Release</button>`);
+    if(i.responded_at&&i.proposed_rate&&i.decision!=='confirmed'&&i.decision!=='declined')acts.push(`<button class="ap" onclick="openCounterModal('${i.id}')">⇄ Gegenangebot</button>`);acts.push(`<button class="ap" onclick="copyLink('${i.token}')">Link</button>`);const ndaBadge=i.nda_accepted_at?`<span class="badge bok" style="font-size:10px;margin-left:4px">NDA ✓</span>`:(i.nda_sent_at?`<span class="badge bam" style="font-size:10px;margin-left:4px">NDA sent</span>`:'')+
   (i.overtime_accepted_at?`<span class="badge bok" style="font-size:10px;margin-left:4px">OT ✓</span>`:i.nda_accepted_at?`<span class="badge bam" style="font-size:10px;margin-left:4px">OT pending</span>`:'');return `<div class="btr"><div style="display:flex;align-items:center">
         <input type="checkbox" class="btr-cb" data-id="${i.id}" style="width:13px;height:13px;accent-color:var(--text)" onclick="toggleBoardSel('${i.id}',this)">
-      </div><div><div class="btr-name">${esc(i.contact_name||'—')}</div><div class="btr-sub">${esc(i.contact_email||'')}${ndaBadge}</div>${i.talent_travel_from?`<div style="font-size:11px;color:var(--bl);margin-top:1px">✈ ${esc(i.talent_travel_from)}</div>`:''}${i.talent_message?`<div style="font-size:11px;color:var(--mid);margin-top:2px;font-style:italic">"${esc(i.talent_message.slice(0,70))}…"</div>`:''}</div><div><div style="font-size:13px">${esc(req?.project_name||'—')}</div><div class="btr-sub">${esc(req?.craft_role||'')}</div></div><div>${badge(i)}</div><div style="font-size:13px;color:var(--mid)">${rate}</div><div class="acts">${acts.join('')}</div></div>`;}).join('');}
+      </div><div><div class="btr-name">${esc(i.contact_name||'—')}</div><div class="btr-sub">${esc(i.contact_email||'')}${ndaBadge}</div>${i.talent_travel_from?`<div style="font-size:11px;color:var(--bl);margin-top:1px">✈ ${esc(i.talent_travel_from)}</div>`:''}${i.talent_message?`<div style="font-size:11px;color:var(--mid);margin-top:2px;font-style:italic">"${esc(i.talent_message.slice(0,70))}…"</div>`:''}</div><div><div style="font-size:13px">${esc(req?.project_name||'—')}</div><div class="btr-sub">${esc(req?.craft_role||'')}</div></div><div>${badge(i)}</div><div style="font-size:13px;color:var(--mid)">${rate}${counterDisp}</div><div class="acts">${acts.join('')}</div></div>`;}).join('');}
 function setBF(f,el){ST.boardFilter=f;document.querySelectorAll('#bf-seg .sb').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderBoard();}
 async function setDec(id,decision){await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify({decision,decision_at:new Date().toISOString(),decision_by:'art_buyer'})});toast('Status updated');loadBoard();}
 async function markNDA(id){await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify({nda_sent_at:new Date().toISOString()})});toast('NDA marked as sent');loadBoard();}
@@ -474,6 +509,37 @@ await fetch(`${SB}/rest/v1/artbuying_booking_log`,{method:'POST',headers:H,body:
 closeModal();toast('✓ Booking confirmed and logged');if(typeof onDone==='function')onDone();else loadBoard();}
 
 // POOL
+function openCounterModal(invId){
+  const inv=ST.boardData.find(x=>x.id===invId);if(!inv)return;
+  const req=inv.artbuying_requests;
+  showModal(`<div class="modal-title">Gegenangebot — ${esc(inv.contact_name)}</div>
+    <div class="modal-sub">Talent hat <strong>€${inv.proposed_rate}${inv.proposed_rate_type==='day_rate'?'/Tag':' total'}</strong> angefragt. Dein Gegenangebot:</div>
+    <div class="g2 fld">
+      <div><label>Gegenangebot (EUR)</label><input type="number" id="cnt-rate" placeholder="Betrag"></div>
+      <div><label>Typ</label><select id="cnt-type"><option value="day_rate">Pro Tag</option><option value="total">Total</option></select></div>
+    </div>
+    <div class="fld"><label>Kurze Begründung / Hinweis (optional)</label>
+      <input type="text" id="cnt-note" placeholder="z. B. Budget fix, kein Spielraum / Reisekosten on top"></div>
+    <div class="brow-btns" style="margin-top:0;padding-top:14px">
+      <button class="btn bg2" onclick="closeModal()">Abbrechen</button>
+      <button class="btn bp" onclick="sendCounter('${invId}')">Gegenangebot senden</button>
+    </div>`);
+}
+async function sendCounter(invId){
+  const rate=parseFloat(document.getElementById('cnt-rate')?.value||'0');
+  if(!rate){toast('Betrag eingeben');return;}
+  const rateType=document.getElementById('cnt-type')?.value||'day_rate';
+  const note=document.getElementById('cnt-note')?.value||null;
+  await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${invId}`,{method:'PATCH',headers:H,body:JSON.stringify({
+    counter_rate:rate,counter_rate_type:rateType,counter_note:note,counter_sent_at:new Date().toISOString()
+  })});
+  await fetch(`${SB}/rest/v1/artbuying_email_queue`,{method:'POST',headers:H,body:JSON.stringify({
+    invite_id:invId,request_id:ST.boardData.find(x=>x.id===invId)?.request_id,
+    email_type:'counter',to_email:ST.boardData.find(x=>x.id===invId)?.contact_email,
+    to_name:ST.boardData.find(x=>x.id===invId)?.contact_name,status:'pending'
+  })});
+  closeModal();toast('Gegenangebot gesendet');loadBoard();
+}
 function renderPool(){const q=(document.getElementById('pool-q')?.value||'').toLowerCase();const craft=document.getElementById('pool-craft')?.value||'';const client=document.getElementById('pool-client')?.value||'';const list=ST.pool.filter(f=>{if(q&&!f.name?.toLowerCase().includes(q)&&!(f.crafts||[]).join(' ').toLowerCase().includes(q)&&!(f.past_clients||[]).join(' ').toLowerCase().includes(q))return false;if(craft&&!(f.crafts||[]).includes(craft))return false;if(client&&!(f.past_clients||[]).includes(client))return false;return true;}).slice(0,200);document.getElementById('pool-count').textContent=`${list.length} results`;document.getElementById('pool-rows').innerHTML=list.map(f=>`<div class="btr" style="grid-template-columns:1fr 150px 130px 110px 75px"><div class="btr-name">${esc(f.name||'—')}</div><div class="gtags">${(f.crafts||[]).map(c=>`<span class="gtag">${esc(c)}</span>`).join('')}</div><div style="font-size:11px;color:var(--light)">${(f.past_clients||[]).slice(0,2).map(esc).join(', ')}</div><div style="font-size:11px;color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.email?esc(f.email):'<span style="font-style:italic;color:var(--light)">—</span>'}</div><div style="font-size:12px;color:var(--mid);text-align:center">${f.last_year_active||'—'}</div></div>`).join('');}
 
 // MODAL HELPERS
