@@ -117,7 +117,7 @@ const x=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 const today=()=>new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'});
 
 let INV=null,REQ=null,STEP=1;
-const RS={avail:null,opts:new Set(),rate:'',rType:'day_rate',msg:'',portfolio:'',travel:'',ndaName:'',ndaOk:false};
+const RS={avail:null,opts:new Set(),rate:'',rType:'day_rate',msg:'',portfolio:'',travel:'',ndaName:'',ndaOk:false,otOk:false};
 
 // ═══ INIT ═══════════════════════════════════════════════════
 async function init(){
@@ -182,12 +182,30 @@ function rNDA(){
       <input type="checkbox" id="nda-cb">
       <span>${isDE?'Ich habe die Geheimhaltungsvereinbarung gelesen und akzeptiere sie verbindlich. Mir ist bewusst, dass Name, Datum und Zeitstempel zur Dokumentation gespeichert werden.':'I have read the Non-Disclosure Agreement and accept it as legally binding. I understand that my name, date, and timestamp are stored for documentation purposes.'}</span>
     </div>
+    <!-- Overtime Policy -->
+    <div style="margin-top:14px;margin-bottom:0">
+      <div style="font-size:12px;font-weight:500;color:var(--m);margin-bottom:8px">Overtime Policy · The Gaabs</div>
+      <div style="background:var(--bg);border:.5px solid var(--b2);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;font-size:13px">
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 14px;line-height:1.7">
+          <span style="font-weight:600;color:var(--t)">1. Stunde</span><span style="color:var(--m)">10 % der vereinbarten Tagesgage</span>
+          <span style="font-weight:600;color:var(--t)">2. Stunde</span><span style="color:var(--m)">15 % der vereinbarten Tagesgage</span>
+          <span style="font-weight:600;color:var(--t)">ab 3. Stunde</span><span style="color:var(--m)">20 % der vereinbarten Tagesgage je weitere Stunde</span>
+        </div>
+        <div style="margin-top:8px;font-size:11.5px;color:var(--l);line-height:1.6">Überstunden werden in ganzen Stunden ab Überschreitung der vereinbarten Shootzeit berechnet. Die Overtime Policy gilt für alle Buchungen über The Gaabs GmbH.</div>
+      </div>
+      <div class="acc-row" id="ot-row" onclick="flipOT()">
+        <input type="checkbox" id="ot-cb">
+        <span>Ich habe die Overtime Policy gelesen und akzeptiere sie als verbindlich für diese Buchung.</span>
+      </div>
+    </div>
     <button class="btn bp" id="nda-btn" disabled onclick="doNDA()">${isDE?'NDA akzeptieren &amp; Briefing ansehen →':'Accept NDA &amp; view briefing →'}</button>
     <p style="font-size:11px;color:var(--l);text-align:center;margin-top:9px">${isDE?'Zeitstempel und IP-Adresse werden protokolliert.':'Timestamp and IP address are logged.'}</p>
   </div>`;
 }
 function flipNDA(){const cb=document.getElementById('nda-cb');cb.checked=!cb.checked;document.getElementById('acc-row').classList.toggle('on',cb.checked);chkNDA();}
-function chkNDA(){const ok=document.getElementById('nda-cb')?.checked&&document.getElementById('sig-n')?.value?.trim();document.getElementById('nda-btn').disabled=!ok;}
+function flipOT(){const cb=document.getElementById('ot-cb');cb.checked=!cb.checked;document.getElementById('ot-row').classList.toggle('on',cb.checked);chkNDA();}
+
+function chkNDA(){const ndaOk=document.getElementById('nda-cb')?.checked&&document.getElementById('sig-n')?.value?.trim();const otOk=document.getElementById('ot-cb')?.checked;document.getElementById('nda-btn').disabled=!(ndaOk&&otOk);}
 async function doNDA(){
   const btn=document.getElementById('nda-btn');btn.disabled=true;btn.textContent='Speichere…';
   RS.ndaName=document.getElementById('sig-n').value.trim();RS.ndaOk=true;
@@ -196,10 +214,12 @@ async function doNDA(){
       nda_gate_passed_at:new Date().toISOString(),
       nda_accepted_at:new Date().toISOString(),
       nda_accepted_name:RS.ndaName,
-      nda_accepted_ip:null,// IP captured server-side in real deployment
+      nda_accepted_ip:null,
+      overtime_accepted_at:new Date().toISOString(),
+      overtime_accepted_name:RS.ndaName,
     })});
     STEP=2;go();
-  }catch(e){btn.disabled=false;btn.textContent='NDA akzeptieren & Briefing ansehen →';alert('Fehler. Bitte erneut versuchen.');console.error(e);}
+  }catch(e){btn.disabled=false;btn.textContent='NDA & Overtime Policy akzeptieren →';alert('Fehler. Bitte erneut versuchen.');console.error(e);}
 }
 
 // ═══ STEP 2: BRIEFING ═══════════════════════════════════════

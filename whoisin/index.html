@@ -65,8 +65,8 @@ input[type=checkbox]{width:14px;height:14px;accent-color:var(--text);cursor:poin
 .stat{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:12px 14px}
 .stat-n{font-size:24px;font-weight:600;letter-spacing:-.5px}.stat-l{font-size:10px;color:var(--light);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
 .btable{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);overflow:hidden}
-.bth{display:grid;grid-template-columns:1fr 130px 100px 80px 150px;padding:8px 14px;background:var(--bg);border-bottom:.5px solid var(--border);font-size:10px;color:var(--light);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-.btr{display:grid;grid-template-columns:1fr 130px 100px 80px 150px;padding:11px 14px;border-bottom:.5px solid var(--border);align-items:center}
+.bth{display:grid;grid-template-columns:32px 1fr 130px 100px 90px 160px;padding:8px 14px;background:var(--bg);border-bottom:.5px solid var(--border);font-size:10px;color:var(--light);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.btr{display:grid;grid-template-columns:32px 1fr 130px 100px 90px 160px;padding:11px 14px;border-bottom:.5px solid var(--border);align-items:center}
 .btr:last-child{border-bottom:none}.btr:hover{background:var(--bg)}
 .btr-name{font-size:13px;font-weight:500}.btr-sub{font-size:11px;color:var(--light)}
 .acts{display:flex;gap:4px;flex-wrap:wrap}
@@ -269,7 +269,17 @@ input[type=checkbox]{width:14px;height:14px;accent-color:var(--text);cursor:poin
     <button class="btn bg2 bsm" onclick="loadBoard()" style="margin-left:auto">↻ Refresh</button>
   </div>
   <div class="btable">
-    <div class="bth"><div>Talent</div><div>Project · Role</div><div>Status</div><div>Rate</div><div>Actions</div></div>
+    <div class="bth" style="grid-template-columns:32px 1fr 130px 100px 90px 160px">
+      <div><input type="checkbox" id="sel-all" onclick="toggleSelAll(this)" style="width:13px;height:13px;accent-color:var(--text)"></div>
+      <div>Talent</div><div>Project · Role</div><div>Status</div><div>Rate</div><div>Actions</div>
+    </div>
+    <div id="bulk-bar" style="display:none;padding:8px 14px;background:var(--bl-bg);border-bottom:.5px solid var(--bl-b);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span id="bulk-count" style="font-size:12px;color:var(--bl);font-weight:500"></span>
+      <button class="ap pi" onclick="bulkAction('first_option')">→ Hold selected</button>
+      <button class="ap pp" onclick="bulkAction('confirmed_pending')">✓ Book selected</button>
+      <button class="ap" onclick="bulkAction('declined')">Release selected</button>
+      <button class="btn bg2 bsm" onclick="clearSel()" style="margin-left:auto">Clear selection</button>
+    </div>
     <div id="board-rows"></div>
   </div>
 </div>
@@ -328,6 +338,7 @@ const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 const val=id=>document.getElementById(id)?.value?.trim()||'';
 const ROLES={production:['Photographer','Director','DOP','Camera Op','Gaffer','Grip','DigiTech','Set Designer','Stylist','Hair & Make-up'],creative_strategy:['Creative Director','Art Director','Copywriter','Brand Strategist','Concept Developer'],pre_production:['Producer','Production Manager','Line Producer','1st AD','Casting Director','Location Scout'],post_production:['Editor','Color Grader','Retoucher','VFX Artist','Motion Designer','Sound Designer'],hybrid:['CD + Director','Photographer + Retoucher','Multidisciplinary']};
 const GMAP={fotograf:'production',videograf:'production',dop:'production',digital_operator:'production',digitech:'production',gaffer:'production',styling:'production',set_design:'production',hmu:'production',art_direction:'creative_strategy',producer:'pre_production',casting:'pre_production',retusche:'post_production',post_production:'post_production'};
+let selBoard=new Set();
 let ST={phase:'production',rateType:'negotiable',timingType:'options',optCount:0,selPool:new Map(),invites:[],pool:[],talentFilter:'all',boardFilter:'all',boardData:[],ndaT:{en:'',de:''},ndaLang:'en',ndaCustom:null};
 
 // NAV
@@ -391,17 +402,57 @@ try{const r=await fetch(`${SB}/rest/v1/artbuying_requests`,{method:'POST',header
 
 // BOARD
 async function loadBoard(){document.getElementById('board-rows').innerHTML='<div class="empty">Loading…</div>';const r=await fetch(`${SB}/rest/v1/artbuying_invites?select=*,artbuying_requests(project_name,craft_role,timing_type,timing_options,timing_fixed_from,rate_type,rate_amount,nda_required,nda_text,buyout_description,buyout_territory,buyout_duration,buyout_channels)&order=created_at.desc&limit=200`,{headers:H});ST.boardData=await r.json();renderBoard();}
+function toggleBoardSel(id,el){
+  if(selBoard.has(id)){selBoard.delete(id);el.checked=false;}
+  else{selBoard.add(id);el.checked=true;}
+  updateBulkBar();
+}
+function toggleSelAll(cb){
+  const rows=document.querySelectorAll('.btr-cb');
+  rows.forEach(r=>{r.checked=cb.checked;cb.checked?selBoard.add(r.dataset.id):selBoard.delete(r.dataset.id);});
+  updateBulkBar();
+}
+function updateBulkBar(){
+  const bar=document.getElementById('bulk-bar');
+  const cnt=document.getElementById('bulk-count');
+  if(selBoard.size>0){bar.style.display='flex';cnt.textContent=`${selBoard.size} selected`;}
+  else{bar.style.display='none';}
+}
+function clearSel(){selBoard.clear();document.querySelectorAll('.btr-cb').forEach(r=>r.checked=false);const cb=document.getElementById('sel-all');if(cb)cb.checked=false;updateBulkBar();}
+async function bulkAction(decision){
+  if(!selBoard.size) return;
+  if(decision==='confirmed_pending'){
+    // Open booking modal for the first selected, chain through
+    openBulkBookingModal([...selBoard]);return;
+  }
+  const label=decision==='first_option'?'Hold':'Release';
+  if(!confirm(`${label} ${selBoard.size} talent(s)?`)) return;
+  const updates=[...selBoard].map(id=>fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify({decision,decision_at:new Date().toISOString(),decision_by:'art_buyer'})}));
+  await Promise.all(updates);
+  toast(`${label} — ${selBoard.size} updated`);clearSel();loadBoard();
+}
+function openBulkBookingModal(ids){
+  if(!ids.length){toast('All confirmed');loadBoard();return;}
+  const id=ids[0];
+  const rest=ids.slice(1);
+  // Reuse single booking modal, on confirm continue with rest
+  openBookingModal(id, ()=>openBulkBookingModal(rest));
+}
 function renderBoard(){const q=(document.getElementById('bq')?.value||'').toLowerCase();const f=ST.boardFilter;const filtered=ST.boardData.filter(i=>{const req=i.artbuying_requests;if(q&&!i.contact_name?.toLowerCase().includes(q)&&!req?.project_name?.toLowerCase().includes(q))return false;if(f==='awaiting'&&i.responded_at)return false;if(f==='available'&&i.availability_status!=='available')return false;if(f==='confirmed'&&i.decision!=='confirmed')return false;return true;});const d=ST.boardData;document.getElementById('bs-tot').textContent=d.length;document.getElementById('bs-resp').textContent=d.filter(i=>i.responded_at).length;document.getElementById('bs-avail').textContent=d.filter(i=>i.availability_status==='available').length;document.getElementById('bs-conf').textContent=d.filter(i=>i.decision==='confirmed').length;if(!filtered.length){document.getElementById('board-rows').innerHTML='<div class="empty">No entries.</div>';return;}
 const badge=i=>{if(i.decision==='confirmed')return '<span class="badge bok">Confirmed</span>';if(i.decision==='first_option')return '<span class="badge bbl">1st option</span>';if(i.decision==='declined')return '<span class="badge bn">Released</span>';if(!i.responded_at)return '<span class="badge bn">Awaiting</span>';if(i.availability_status==='available')return '<span class="badge bok">Available</span>';if(i.availability_status==='not_available')return '<span class="badge bre">Not available</span>';if(i.availability_status==='partially_available')return '<span class="badge bam">Partial</span>';return '<span class="badge bn">Responded</span>';};
-document.getElementById('board-rows').innerHTML=filtered.map(i=>{const req=i.artbuying_requests;const rate=i.proposed_rate?`€${i.proposed_rate}${i.proposed_rate_type==='day_rate'?'/d':' tot'}`:'—';const acts=[];if(i.availability_status==='available'&&i.decision==='pending')acts.push(`<button class="ap pi" onclick="setDec('${i.id}','first_option')">→ Hold</button>`);if(['available','partially_available','first_option'].includes(i.availability_status)&&i.decision!=='confirmed')acts.push(`<button class="ap pp" onclick="openBookingModal('${i.id}')">✓ Book</button>`);if(i.decision==='confirmed'&&!i.nda_sent_at)acts.push(`<button class="ap po" onclick="markNDA('${i.id}')">NDA →</button>`);if(!['declined','confirmed'].includes(i.decision))acts.push(`<button class="ap" onclick="setDec('${i.id}','declined')">Release</button>`);acts.push(`<button class="ap" onclick="copyLink('${i.token}')">Link</button>`);const ndaBadge=i.nda_accepted_at?`<span class="badge bok" style="font-size:10px;margin-left:4px">NDA ✓</span>`:(i.nda_sent_at?`<span class="badge bam" style="font-size:10px;margin-left:4px">NDA sent</span>`:'');return `<div class="btr"><div><div class="btr-name">${esc(i.contact_name||'—')}</div><div class="btr-sub">${esc(i.contact_email||'')}${ndaBadge}</div>${i.talent_message?`<div style="font-size:11px;color:var(--mid);margin-top:2px;font-style:italic">"${esc(i.talent_message.slice(0,70))}…"</div>`:''}</div><div><div style="font-size:13px">${esc(req?.project_name||'—')}</div><div class="btr-sub">${esc(req?.craft_role||'')}</div></div><div>${badge(i)}</div><div style="font-size:13px;color:var(--mid)">${rate}</div><div class="acts">${acts.join('')}</div></div>`;}).join('');}
+document.getElementById('board-rows').innerHTML=filtered.map(i=>{const req=i.artbuying_requests;const rate=i.proposed_rate?`€${i.proposed_rate}${i.proposed_rate_type==='day_rate'?'/d':' tot'}`:'—';const acts=[];if(i.availability_status==='available'&&i.decision==='pending')acts.push(`<button class="ap pi" onclick="setDec('${i.id}','first_option')">→ Hold</button>`);if(['available','partially_available','first_option'].includes(i.availability_status)&&i.decision!=='confirmed')acts.push(`<button class="ap pp" onclick="openBookingModal('${i.id}')">✓ Book</button>`);if(i.decision==='confirmed'&&!i.nda_sent_at)acts.push(`<button class="ap po" onclick="markNDA('${i.id}')">NDA →</button>`);if(!['declined','confirmed'].includes(i.decision))acts.push(`<button class="ap" onclick="setDec('${i.id}','declined')">Release</button>`);acts.push(`<button class="ap" onclick="copyLink('${i.token}')">Link</button>`);const ndaBadge=i.nda_accepted_at?`<span class="badge bok" style="font-size:10px;margin-left:4px">NDA ✓</span>`:(i.nda_sent_at?`<span class="badge bam" style="font-size:10px;margin-left:4px">NDA sent</span>`:'')+
+  (i.overtime_accepted_at?`<span class="badge bok" style="font-size:10px;margin-left:4px">OT ✓</span>`:i.nda_accepted_at?`<span class="badge bam" style="font-size:10px;margin-left:4px">OT pending</span>`:'');return `<div class="btr"><div style="display:flex;align-items:center">
+        <input type="checkbox" class="btr-cb" data-id="${i.id}" style="width:13px;height:13px;accent-color:var(--text)" onclick="toggleBoardSel('${i.id}',this)">
+      </div><div><div class="btr-name">${esc(i.contact_name||'—')}</div><div class="btr-sub">${esc(i.contact_email||'')}${ndaBadge}</div>${i.talent_travel_from?`<div style="font-size:11px;color:var(--bl);margin-top:1px">✈ ${esc(i.talent_travel_from)}</div>`:''}${i.talent_message?`<div style="font-size:11px;color:var(--mid);margin-top:2px;font-style:italic">"${esc(i.talent_message.slice(0,70))}…"</div>`:''}</div><div><div style="font-size:13px">${esc(req?.project_name||'—')}</div><div class="btr-sub">${esc(req?.craft_role||'')}</div></div><div>${badge(i)}</div><div style="font-size:13px;color:var(--mid)">${rate}</div><div class="acts">${acts.join('')}</div></div>`;}).join('');}
 function setBF(f,el){ST.boardFilter=f;document.querySelectorAll('#bf-seg .sb').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderBoard();}
 async function setDec(id,decision){await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify({decision,decision_at:new Date().toISOString(),decision_by:'art_buyer'})});toast('Status updated');loadBoard();}
 async function markNDA(id){await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify({nda_sent_at:new Date().toISOString()})});toast('NDA marked as sent');loadBoard();}
 function copyLink(token){const url=`${window.location.origin}/whoisin-talent.html?token=${token}`;navigator.clipboard.writeText(url).then(()=>toast('Link copied!')).catch(()=>prompt('Copy link:',url));}
 
 // BOOKING MODAL
-function openBookingModal(invId){const inv=ST.boardData.find(x=>x.id===invId);if(!inv)return;const req=inv.artbuying_requests;const ndaOk=inv.nda_accepted_at;const boParts=[req?.buyout_description,req?.buyout_territory&&'Territory: '+req.buyout_territory,req?.buyout_duration&&'Duration: '+req.buyout_duration,req?.buyout_channels&&'Channels: '+req.buyout_channels].filter(Boolean);
-showModal(`<div class="modal-title">Confirm booking — ${esc(inv.contact_name)}</div><div class="modal-sub">Review all details before confirming. This logs the booking.</div>
+function openBookingModal(invId,onDone=null){const inv=ST.boardData.find(x=>x.id===invId);if(!inv)return;const req=inv.artbuying_requests;const ndaOk=inv.nda_accepted_at;const boParts=[req?.buyout_description,req?.buyout_territory&&'Territory: '+req.buyout_territory,req?.buyout_duration&&'Duration: '+req.buyout_duration,req?.buyout_channels&&'Channels: '+req.buyout_channels].filter(Boolean);
+window.currentOnDone=onDone;
+  showModal(`<div class="modal-title">Confirm booking — ${esc(inv.contact_name)}</div><div class="modal-sub">Review all details before confirming. This logs the booking.</div>
 <div class="bsum">
   <div class="bsrow"><span class="bslbl">Project</span><strong>${esc(req?.project_name||'—')}</strong></div>
   <div class="bsrow"><span class="bslbl">Role</span><span>${esc(req?.craft_role||'—')}</span></div>
@@ -415,12 +466,12 @@ showModal(`<div class="modal-title">Confirm booking — ${esc(inv.contact_name)}
   <div><label>Rate type</label><select id="conf-rate-type"><option value="day_rate" ${inv.proposed_rate_type==='day_rate'?'selected':''}>Per day</option><option value="total" ${inv.proposed_rate_type==='total'?'selected':''}>Total</option></select></div>
 </div>
 <div class="fld"><label>Internal note (optional)</label><input type="text" id="conf-note" placeholder="e.g. confirmed via call, DRS studio"></div>
-<div class="brow-btns" style="margin-top:0;padding-top:14px"><button class="btn bg2" onclick="closeModal()">Cancel</button><button class="btn bp" onclick="confirmBooking('${invId}')">✓ Confirm & log booking</button></div>`);}
+<div class="brow-btns" style="margin-top:0;padding-top:14px"><button class="btn bg2" onclick="closeModal()">Cancel</button><button class="btn bp" onclick="confirmBooking('${invId}',currentOnDone)">✓ Confirm & log booking</button></div>`);}
 
-async function confirmBooking(invId){const inv=ST.boardData.find(x=>x.id===invId);if(!inv)return;const req=inv.artbuying_requests;const fr=document.getElementById('conf-rate')?.value?parseFloat(document.getElementById('conf-rate').value):inv.proposed_rate;const frt=document.getElementById('conf-rate-type')?.value||inv.proposed_rate_type||'day_rate';const fd=document.getElementById('conf-dates')?.value||null;const note=document.getElementById('conf-note')?.value||null;
+async function confirmBooking(invId,onDone=null){const inv=ST.boardData.find(x=>x.id===invId);if(!inv)return;const req=inv.artbuying_requests;const fr=document.getElementById('conf-rate')?.value?parseFloat(document.getElementById('conf-rate').value):inv.proposed_rate;const frt=document.getElementById('conf-rate-type')?.value||inv.proposed_rate_type||'day_rate';const fd=document.getElementById('conf-dates')?.value||null;const note=document.getElementById('conf-note')?.value||null;
 await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${invId}`,{method:'PATCH',headers:H,body:JSON.stringify({decision:'confirmed',decision_at:new Date().toISOString(),decision_by:'art_buyer',booking_confirmed_at:new Date().toISOString(),final_rate:fr,final_dates:fd})});
 await fetch(`${SB}/rest/v1/artbuying_booking_log`,{method:'POST',headers:H,body:JSON.stringify({invite_id:invId,request_id:inv.request_id,contact_name:inv.contact_name,contact_email:inv.contact_email,craft_phase:req?.craft_phase,craft_role:req?.craft_role,final_rate:fr,final_rate_type:frt,final_dates:fd,nda_accepted:!!inv.nda_accepted_at,booking_confirmed_by_talent:!!inv.booking_confirmed_by_talent_at,notes:note})});
-closeModal();toast('✓ Booking confirmed and logged');loadBoard();}
+closeModal();toast('✓ Booking confirmed and logged');if(typeof onDone==='function')onDone();else loadBoard();}
 
 // POOL
 function renderPool(){const q=(document.getElementById('pool-q')?.value||'').toLowerCase();const craft=document.getElementById('pool-craft')?.value||'';const client=document.getElementById('pool-client')?.value||'';const list=ST.pool.filter(f=>{if(q&&!f.name?.toLowerCase().includes(q)&&!(f.crafts||[]).join(' ').toLowerCase().includes(q)&&!(f.past_clients||[]).join(' ').toLowerCase().includes(q))return false;if(craft&&!(f.crafts||[]).includes(craft))return false;if(client&&!(f.past_clients||[]).includes(client))return false;return true;}).slice(0,200);document.getElementById('pool-count').textContent=`${list.length} results`;document.getElementById('pool-rows').innerHTML=list.map(f=>`<div class="btr" style="grid-template-columns:1fr 150px 130px 110px 75px"><div class="btr-name">${esc(f.name||'—')}</div><div class="gtags">${(f.crafts||[]).map(c=>`<span class="gtag">${esc(c)}</span>`).join('')}</div><div style="font-size:11px;color:var(--light)">${(f.past_clients||[]).slice(0,2).map(esc).join(', ')}</div><div style="font-size:11px;color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.email?esc(f.email):'<span style="font-style:italic;color:var(--light)">—</span>'}</div><div style="font-size:12px;color:var(--mid);text-align:center">${f.last_year_active||'—'}</div></div>`).join('');}
