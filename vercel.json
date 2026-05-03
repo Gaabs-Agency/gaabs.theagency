@@ -2,6 +2,8 @@
   "outputDirectory": "dist",
   "routes": [
     { "handle": "filesystem" },
+    { "src": "/whoisin/whoisin-talent", "dest": "/whoisin/whoisin-talent.html" },
+    { "src": "/whoisin(.*)", "dest": "/whoisin/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
