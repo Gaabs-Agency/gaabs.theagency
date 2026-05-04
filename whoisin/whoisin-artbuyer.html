@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Who's In — Art Buying · The Gaabs</title>
+<style>
+:root{--bg:#f5f4f0;--surface:#fff;--border:#e8e6df;--border2:#d0cdc4;--text:#181714;--mid:#6b6860;--light:#9e9b93;--ok:#166534;--ok-bg:#f0fdf4;--ok-b:#bbf7d0;--am:#92400e;--am-bg:#fffbeb;--am-b:#fde68a;--re:#991b1b;--re-bg:#fef2f2;--re-b:#fecaca;--bl:#1e40af;--bl-bg:#eff6ff;--bl-b:#bfdbfe;--r:8px;--rl:12px;font-size:15px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:var(--text)}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);min-height:100vh}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+.side{background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.content{padding:32px 36px;max-width:860px}
+.side-logo{padding:18px 16px 16px;border-bottom:.5px solid var(--border)}
+.logo-row{display:flex;align-items:center;gap:9px}
+.logo-sq{width:26px;height:26px;background:var(--text);border-radius:5px;display:grid;place-items:center;flex-shrink:0}
+.logo-sq svg{fill:white;width:14px;height:14px}
+.logo-w{font-size:15px;font-weight:600;letter-spacing:-.3px}.logo-t{font-size:10px;color:var(--light);margin-top:2px;letter-spacing:.05em;text-transform:uppercase}
+.snav{padding:8px 6px;flex:1}.sg{font-size:10px;color:var(--light);letter-spacing:.07em;text-transform:uppercase;padding:10px 6px 4px}
+.nb{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--r);font-size:13px;color:var(--mid);cursor:pointer;margin-bottom:1px;transition:all .1s;user-select:none;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.nb:hover{background:var(--bg);color:var(--text)}.nb.on{background:var(--bg);color:var(--text);font-weight:500}
+.ni{width:14px;height:14px;opacity:.45;flex-shrink:0}.nb.on .ni{opacity:1}
+.sfoot{padding:12px 16px;border-top:.5px solid var(--border);font-size:11px;color:var(--light)}
+.panel{display:none}.panel.on{display:block}
+.ph{margin-bottom:24px}.ph-title{font-size:21px;font-weight:600;letter-spacing:-.4px}.ph-sub{font-size:13px;color:var(--mid);margin-top:3px}
+.card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:18px 20px;margin-bottom:12px}
+.clbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--light);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.sn{width:16px;height:16px;border-radius:50%;background:var(--text);color:white;font-size:9px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+label{display:block;font-size:12px;color:var(--mid);font-weight:500;margin-bottom:4px}
+input[type=text],input[type=email],input[type=number],input[type=date],input[type=time],select,textarea{width:100%;border:.5px solid var(--border2);border-radius:var(--r);background:var(--surface);color:var(--text);font-size:14px;font-family:inherit;padding:8px 10px;outline:none;transition:border-color .12s}
+input:focus,select:focus,textarea:focus{border-color:var(--text)}select{height:36px;cursor:pointer}textarea{resize:vertical;min-height:70px;line-height:1.55}
+.fld{margin-bottom:11px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+input[type=checkbox]{width:14px;height:14px;accent-color:var(--text);cursor:pointer}
+.pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{border:.5px solid var(--border2);border-radius:20px;padding:5px 11px;font-size:12px;cursor:pointer;color:var(--mid);background:var(--surface);transition:all .1s;user-select:none;white-space:nowrap}
+.pill:hover{border-color:var(--text);color:var(--text)}.pill.on{background:var(--text);color:white;border-color:var(--text)}
+.seg{display:inline-flex;border:.5px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.sb{padding:6px 13px;font-size:12px;cursor:pointer;background:var(--surface);color:var(--mid);border:none;border-right:.5px solid var(--border2);font-family:inherit;transition:all .1s;white-space:nowrap}
+.sb:last-child{border-right:none}.sb.on{background:var(--text);color:white}.sb:hover:not(.on){background:var(--bg)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .12s;border:.5px solid transparent;line-height:1}
+.bp{background:var(--text);color:white;border-color:var(--text)}.bp:hover{opacity:.85}.bp:disabled{opacity:.3;cursor:not-allowed}
+.bg2{background:transparent;color:var(--mid);border-color:var(--border2)}.bg2:hover{background:var(--bg);color:var(--text);border-color:var(--text)}
+.bsm{padding:5px 11px;font-size:12px}
+.brow-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:.5px solid var(--border)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.bn{background:var(--bg);color:var(--mid);border:.5px solid var(--border)}.bok{background:var(--ok-bg);color:var(--ok);border:.5px solid var(--ok-b)}.bam{background:var(--am-bg);color:var(--am);border:.5px solid var(--am-b)}.bre{background:var(--re-bg);color:var(--re);border:.5px solid var(--re-b)}.bbl{background:var(--bl-bg);color:var(--bl);border:.5px solid var(--bl-b)}
+.nda-card{background:var(--am-bg);border:.5px solid var(--am-b);border-radius:var(--rl);padding:14px 18px;margin-bottom:12px}
+.nda-hdr{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.nda-ico{width:28px;height:28px;border-radius:50%;background:rgba(146,64,14,.12);display:grid;place-items:center;flex-shrink:0;margin-top:1px}
+.nda-title{font-size:13px;font-weight:600;color:var(--am)}.nda-sub{font-size:11px;color:var(--am);opacity:.8;margin-top:2px}
+.nda-body{background:rgba(255,255,255,.55);border:.5px solid var(--am-b);border-radius:var(--r);padding:11px 13px;margin:9px 0;max-height:150px;overflow-y:auto;font-size:11.5px;line-height:1.7;color:var(--text);white-space:pre-wrap}
+.nda-eb{font-size:11px;color:var(--am);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:inherit;padding:0}
+.tth{display:grid;grid-template-columns:28px 1fr 150px 120px 65px;padding:8px 10px;background:var(--bg);border-bottom:.5px solid var(--border);font-size:10px;font-weight:700;color:var(--light);letter-spacing:.06em;text-transform:uppercase}
+.ttr{display:grid;grid-template-columns:28px 1fr 150px 120px 65px;padding:9px 10px;border-bottom:.5px solid var(--border);align-items:center;cursor:pointer;transition:background .08s}
+.ttr:last-child{border-bottom:none}.ttr:hover{background:var(--bg)}.ttr.sel{background:#f0efe9}
+.gtags{display:flex;flex-wrap:wrap;gap:3px}.gtag{font-size:10px;padding:1px 6px;background:var(--bg);border:.5px solid var(--border);border-radius:8px;color:var(--mid)}.gtag.hl{background:#eef2ff;border-color:#c7d2fe;color:#3730a3}
+.inv-list{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.inv-item{display:flex;align-items:center;gap:9px;padding:8px 11px;background:var(--bg);border-radius:var(--r);border:.5px solid var(--border)}
+.av{width:26px;height:26px;border-radius:50%;background:var(--border);display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--mid);flex-shrink:0}
+.irm{margin-left:auto;width:20px;height:20px;border-radius:50%;border:.5px solid var(--border2);background:transparent;cursor:pointer;font-size:13px;color:var(--light);display:grid;place-items:center}
+.irm:hover{background:var(--re-bg);color:var(--re);border-color:var(--re-b)}
+.topt{display:grid;grid-template-columns:65px 1fr 1fr 24px;gap:8px;align-items:center;margin-bottom:7px}
+.topt-l{font-size:12px;font-weight:600;color:var(--mid)}
+.rmx{width:22px;height:22px;border-radius:50%;border:.5px solid var(--border2);background:transparent;cursor:pointer;font-size:13px;color:var(--light);display:grid;place-items:center}.rmx:hover{background:var(--re-bg);color:var(--re)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.stat{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:12px 14px}
+.stat-n{font-size:24px;font-weight:600;letter-spacing:-.5px}.stat-l{font-size:10px;color:var(--light);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.btable{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.bth{display:grid;grid-template-columns:1fr 130px 100px 80px 150px;padding:8px 14px;background:var(--bg);border-bottom:.5px solid var(--border);font-size:10px;color:var(--light);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.btr{display:grid;grid-template-columns:1fr 130px 100px 80px 150px;padding:11px 14px;border-bottom:.5px solid var(--border);align-items:center}
+.btr:last-child{border-bottom:none}.btr:hover{background:var(--bg)}
+.btr-name{font-size:13px;font-weight:500}.btr-sub{font-size:11px;color:var(--light)}
+.acts{display:flex;gap:4px;flex-wrap:wrap}
+.ap{border:.5px solid var(--border2);border-radius:20px;padding:3px 9px;font-size:11px;cursor:pointer;background:var(--surface);color:var(--mid);font-family:inherit;transition:all .1s;white-space:nowrap}
+.ap:hover{background:var(--bg)}.ap.pp{background:var(--text);color:white;border-color:var(--text)}.ap.pi{background:var(--bl-bg);color:var(--bl);border-color:var(--bl-b)}.ap.po{background:var(--ok-bg);color:var(--ok);border-color:var(--ok-b)}
+.modal-bg{position:fixed;inset:0;background:rgba(24,23,20,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal{background:var(--surface);border-radius:var(--rl);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:24px 26px;border:.5px solid var(--border)}
+.modal-title{font-size:16px;font-weight:600;letter-spacing:-.3px;margin-bottom:4px}.modal-sub{font-size:12px;color:var(--mid);margin-bottom:16px}
+.bsum{background:var(--bg);border-radius:var(--r);padding:13px 15px;margin-bottom:13px}
+.bsrow{display:flex;gap:8px;align-items:baseline;margin-bottom:5px;font-size:13px}
+.bslbl{font-size:11px;color:var(--light);width:96px;flex-shrink:0}
+.alert{padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:12px;display:none}.alert.on{display:block}
+.a-ok{background:var(--ok-bg);color:var(--ok);border:.5px solid var(--ok-b)}.a-err{background:var(--re-bg);color:var(--re);border:.5px solid var(--re-b)}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:white;border-radius:var(--r);padding:9px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9999}#toast.show{opacity:1}
+.spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}@keyframes sp{to{transform:rotate(360deg)}}
+.divider{height:.5px;background:var(--border);margin:12px 0}
+.empty{text-align:center;padding:36px 20px;color:var(--light);font-size:13px}
+.pool-filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.pool-filters input,.pool-filters select{height:33px;font-size:13px}.pool-filters input{width:200px}.pool-filters select{width:160px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="side-logo"><div class="logo-row"><div class="logo-sq"><svg viewBox="0 0 14 14"><circle cx="7" cy="5.5" r="2.8"/><path d="M1.5 13.5c0-3.038 2.462-5.5 5.5-5.5s5.5 2.462 5.5 5.5"/></svg></div><div><div class="logo-w">Who's In</div><div class="logo-t">Art Buying</div></div></div></div>
+  <nav class="snav">
+    <div class="sg">Workflow</div>
+    <button class="nb on" onclick="go('new',this)"><svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="5" y1="8" x2="11" y2="8"/></svg>New request</button>
+    <button class="nb" onclick="go('board',this)"><svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Response board</button>
+    <div class="sg">Reference</div>
+    <button class="nb" onclick="go('pool',this)"><svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="3"/><path d="M10 10l3 3"/><path d="M1 13c0-2.761 2.239-5 5-5"/></svg>Talent pool</button>
+    <button class="nb" onclick="go('preview',this)"><svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3C4.5 3 1.5 8 1.5 8S4.5 13 8 13s6.5-5 6.5-5S11.5 3 8 3z"/><circle cx="8" cy="8" r="2"/></svg>Talent view</button>
+    <div class="sg">Settings</div>
+    <button class="nb" onclick="go('nda-settings',this)"><svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 1H4a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V5l-3-4z"/><path d="M9 1v4h4"/></svg>NDA templates</button>
+  </nav>
+  <div class="sfoot">The Gaabs GmbH · BRAIN GAABS</div>
+</aside>
+
+<main class="content">
+<div id="toast"></div>
+<div id="modal-wrap"></div>
+
+<!-- ═══ NEW REQUEST ═══ -->
+<div class="panel on" id="panel-new">
+  <div class="ph"><div class="ph-title">New availability request</div><div class="ph-sub">Define position, timing, legal terms — then select who to invite.</div></div>
+  <div class="alert a-ok" id="ok-msg"></div><div class="alert a-err" id="err-msg"></div>
+
+  <div class="card"><div class="clbl"><span class="sn">1</span>Project</div>
+    <div class="g2">
+      <div class="fld"><label>Project name</label><input type="text" id="f-proj" placeholder="e.g. BOSS SS26 Campaign" oninput="syncPv()"></div>
+      <div class="fld"><label>Client</label><input type="text" id="f-client" placeholder="e.g. Hugo Boss" oninput="syncPv()"></div>
+      <div class="fld"><label>Your name (Art Buyer)</label><input type="text" id="f-ab-name" placeholder="e.g. Rebecca Kujawin"></div>
+      <div class="fld"><label>Your email (reply-to for talent)</label><input type="email" id="f-ab-email" placeholder="e.g. rebecca@thegaabs.com"></div>
+    </div>
+  </div>
+
+  <div class="card"><div class="clbl"><span class="sn">2</span>Position</div>
+    <div class="fld"><label>Phase</label><div class="pills" id="phase-pills">
+      <div class="pill on" data-v="production" onclick="pickPhase(this)">Production</div>
+      <div class="pill" data-v="creative_strategy" onclick="pickPhase(this)">Creative & Strategy</div>
+      <div class="pill" data-v="pre_production" onclick="pickPhase(this)">Pre-Production</div>
+      <div class="pill" data-v="post_production" onclick="pickPhase(this)">Post-Production</div>
+      <div class="pill" data-v="hybrid" onclick="pickPhase(this)">Hybrid / Open</div>
+    </div></div>
+    <div class="fld"><label>Role</label><div class="pills" id="role-pills" style="margin-bottom:6px"></div><input type="text" id="f-role-custom" placeholder="Custom role…" oninput="syncPv()"></div>
+  </div>
+
+  <div class="card"><div class="clbl"><span class="sn">3</span>Briefing <span style="font-weight:400;color:var(--light);font-size:10px;letter-spacing:0;text-transform:none">(only filled fields shown to talent)</span></div>
+    <div class="g2">
+      <div class="fld"><label>Type / format</label><input type="text" id="b-type" placeholder="e.g. Fashion editorial" oninput="syncPv()"></div>
+      <div class="fld"><label>Deliverables</label><input type="text" id="b-del" placeholder="e.g. 40 stills, 3 hero videos" oninput="syncPv()"></div>
+      <div class="fld"><label>Experience / style</label><input type="text" id="b-exp" placeholder="e.g. High-end fashion" oninput="syncPv()"></div>
+      <div class="fld"><label>Location</label><input type="text" id="b-loc" placeholder="e.g. Berlin studio + outdoor" oninput="syncPv()"></div>
+    </div>
+    <div class="fld"><label>Additional notes</label><textarea id="b-notes" placeholder="Special equipment, references, working style…" oninput="syncPv()"></textarea></div>
+  </div>
+
+  <div class="card"><div class="clbl"><span class="sn">4</span>Availability</div>
+    <div class="fld"><label>Timing type</label><div class="seg">
+      <button class="sb" data-v="fixed" onclick="pickTiming(this)">Fixed dates</button>
+      <button class="sb on" data-v="options" onclick="pickTiming(this)">Options A / B / C</button>
+      <button class="sb" data-v="tbd" onclick="pickTiming(this)">Open / TBD</button>
+    </div></div>
+    <div id="t-fixed" style="display:none"><div class="g2"><div class="fld"><label>From</label><input type="date" id="tf-from" oninput="syncPv()"></div><div class="fld"><label>To</label><input type="date" id="tf-to" oninput="syncPv()"></div></div></div>
+    <div id="t-opts"><div id="opts-rows"></div><button class="btn bg2 bsm" onclick="addOpt()" style="margin-top:2px">+ Add option</button></div>
+    <div id="t-tbd" style="display:none"><div class="fld"><label>Notes</label><input type="text" id="tbd-notes" placeholder="e.g. Q3 2025, exact dates TBC" oninput="syncPv()"></div></div>
+  </div>
+
+  <div class="card"><div class="clbl"><span class="sn">5</span>Rate</div>
+    <div class="fld"><label>Rate structure</label><div class="seg" id="rate-seg">
+      <button class="sb on" data-v="negotiable" onclick="pickRate(this)">Negotiable</button>
+      <button class="sb" data-v="day_rate" onclick="pickRate(this)">Day rate</button>
+      <button class="sb" data-v="total" onclick="pickRate(this)">Total / lump sum</button>
+    </div></div>
+    <div id="rate-detail" style="display:none"><div class="g2">
+      <div class="fld"><label>Amount (EUR)</label><input type="number" id="r-amt" min="0" placeholder="0" oninput="syncPv()"></div>
+      <div class="fld"><label>Notes</label><input type="text" id="r-notes" placeholder="e.g. incl. equipment" oninput="syncPv()"></div>
+    </div></div>
+  </div>
+
+  <!-- NDA & BUYOUT — standard pre-filled -->
+  <div class="card"><div class="clbl"><span class="sn">6</span>Usage rights & NDA</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <input type="checkbox" id="nda-req" checked onchange="syncPv()">
+      <label for="nda-req" style="margin:0;font-size:13px;color:var(--text);cursor:pointer;font-weight:500">NDA required — talent must accept digitally before booking is confirmed</label>
+    </div>
+    <div id="nda-block">
+      <div class="nda-card">
+        <div class="nda-hdr">
+          <div class="nda-ico"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#92400e" stroke-width="1.5"><path d="M10 1H4a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V5l-3-4z"/><path d="M9 1v4h4"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg></div>
+          <div style="flex:1">
+            <div class="nda-title">Standard NDA v2.0 — The Gaabs GmbH</div>
+            <div class="nda-sub">IP transfer to Gaabs/Client · No social media without approval · No portfolio without approval · No AI training or blueprint use</div>
+          </div>
+          <div class="seg" id="nda-lang-seg" style="flex-shrink:0">
+            <button class="sb on" onclick="setNdaLang('en',this)">EN</button>
+            <button class="sb" onclick="setNdaLang('de',this)">DE</button>
+          </div>
+        </div>
+        <div class="nda-body" id="nda-preview-text">Loading…</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="nda-eb" onclick="openNdaEdit()">Edit for this request →</button>
+          <span style="font-size:11px;color:var(--am);opacity:.7">Talent sees full text and must check a box to accept</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;color:var(--mid);margin-bottom:8px">Buyout / usage rights (shown to talent as separate section)</div>
+    <div class="fld"><label>Usage rights description</label><textarea id="buyout-desc" rows="2" placeholder="e.g. Full buyout for all media, 2 years, DE + EU. Incl. Social, OOH, Print." oninput="syncPv()"></textarea></div>
+    <div class="g3">
+      <div class="fld"><label>Territory</label><input type="text" id="buyout-territory" placeholder="e.g. DE, EU-wide" oninput="syncPv()"></div>
+      <div class="fld"><label>Duration</label><input type="text" id="buyout-duration" placeholder="e.g. 2 years" oninput="syncPv()"></div>
+      <div class="fld"><label>Channels</label><input type="text" id="buyout-channels" placeholder="e.g. Social, OOH, TV" oninput="syncPv()"></div>
+    </div>
+  </div>
+
+  <div class="card"><div class="clbl"><span class="sn">7</span>Response deadline</div>
+    <div class="g2">
+      <div class="fld"><label>Date</label><input type="date" id="d-date" oninput="syncPv()"></div>
+      <div class="fld"><label>Time</label><input type="time" id="d-time" value="18:00" oninput="syncPv()"></div>
+    </div>
+  </div>
+
+  <div class="card"><div class="clbl"><span class="sn">8</span>Who to invite</div>
+    <div style="font-size:12px;font-weight:500;color:var(--mid);margin-bottom:7px">From BRAIN GAABS — 208 contacts</div>
+    <div style="display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap">
+      <input type="text" id="ts-q" placeholder="Search name or craft…" oninput="renderTP()" style="flex:1;min-width:140px;font-size:13px">
+      <div class="seg" id="tf-seg">
+        <button class="sb on" onclick="setTF('all',this)">All</button>
+        <button class="sb" onclick="setTF('email',this)">Has email</button>
+        <button class="sb" onclick="setTF('match',this)">Craft match</button>
+      </div>
+    </div>
+    <div style="border:.5px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div class="tth"><div></div><div>Name / clients</div><div>Crafts</div><div>Email</div><div>Active</div></div>
+      <div id="tp-rows" style="max-height:260px;overflow-y:auto"></div>
+    </div>
+    <div style="font-size:12px;color:var(--mid);margin-top:6px" id="sel-count">0 selected</div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;color:var(--mid);margin-bottom:7px">Add manually</div>
+    <div style="display:flex;gap:7px">
+      <input type="text" id="m-name" placeholder="Name" style="max-width:160px;font-size:13px">
+      <input type="email" id="m-email" placeholder="email@example.com" style="flex:1;font-size:13px">
+      <button class="btn bg2 bsm" onclick="addManual()">+ Add</button>
+    </div>
+    <div class="inv-list" id="inv-list"></div>
+    <p style="font-size:11px;color:var(--light);margin-top:7px">Each person receives a unique personal link. No login required.</p>
+  </div>
+
+  <div class="brow-btns">
+    <button class="btn bg2" onclick="toast('Draft saving — coming in v2')">Save draft</button>
+    <button class="btn bp" id="send-btn" onclick="doSend()"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8l12-6-6 12V8H2z"/></svg>Send invites</button>
+  </div>
+</div>
+
+<!-- ═══ BOARD ═══ -->
+<div class="panel" id="panel-board">
+  <div class="ph"><div class="ph-title">Response board</div><div class="ph-sub">Live status — hold, confirm, book, NDA, log.</div></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="bs-tot">—</div><div class="stat-l">Invited</div></div>
+    <div class="stat"><div class="stat-n" id="bs-resp">—</div><div class="stat-l">Responded</div></div>
+    <div class="stat"><div class="stat-n" id="bs-avail">—</div><div class="stat-l">Available</div></div>
+    <div class="stat"><div class="stat-n" id="bs-conf">—</div><div class="stat-l">Confirmed</div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+    <input type="text" id="bq" placeholder="Filter…" oninput="renderBoard()" style="font-size:13px;height:32px;width:190px">
+    <div class="seg" id="bf-seg">
+      <button class="sb on" onclick="setBF('all',this)">All</button>
+      <button class="sb" onclick="setBF('awaiting',this)">Awaiting</button>
+      <button class="sb" onclick="setBF('available',this)">Available</button>
+      <button class="sb" onclick="setBF('confirmed',this)">Confirmed</button>
+    </div>
+    <button class="btn bg2 bsm" onclick="loadBoard()" style="margin-left:auto">↻ Refresh</button>
+  </div>
+  <div class="btable">
+    <div class="bth"><div>Talent</div><div>Project · Role</div><div>Status</div><div>Rate</div><div>Actions</div></div>
+    <div id="board-rows"></div>
+  </div>
+</div>
+
+<!-- ═══ POOL ═══ -->
+<div class="panel" id="panel-pool">
+  <div class="ph"><div class="ph-title">Talent pool</div><div class="ph-sub">208 contacts from BRAIN GAABS — merged from DATEV history 2019–2026.</div></div>
+  <div class="pool-filters">
+    <input type="text" id="pool-q" placeholder="Name, craft, client…" oninput="renderPool()">
+    <select id="pool-craft" onchange="renderPool()"><option value="">All crafts</option></select>
+    <select id="pool-client" onchange="renderPool()"><option value="">All clients</option></select>
+    <span style="font-size:12px;color:var(--light);margin-left:auto" id="pool-count"></span>
+  </div>
+  <div class="btable">
+    <div class="bth" style="grid-template-columns:1fr 150px 130px 110px 75px"><div>Name</div><div>Crafts</div><div>Clients</div><div>Email</div><div>Last active</div></div>
+    <div id="pool-rows" style="max-height:600px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- ═══ PREVIEW ═══ -->
+<div class="panel" id="panel-preview">
+  <div class="ph"><div class="ph-title">Talent view preview</div><div class="ph-sub">Live preview — exactly what the freelancer sees via their invite link.</div></div>
+  <div style="max-width:540px"><div class="card">
+    <div style="font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Availability check — The Gaabs</div>
+    <div style="background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+      <div style="display:flex;gap:8px;align-items:baseline;margin-bottom:5px;font-size:13px"><span style="width:85px;flex-shrink:0;font-size:11px;color:var(--light)">Project</span><strong id="pv-proj">—</strong></div>
+      <div style="display:flex;gap:8px;align-items:baseline;margin-bottom:5px;font-size:13px"><span style="width:85px;flex-shrink:0;font-size:11px;color:var(--light)">Role</span><span id="pv-role">—</span></div>
+      <div id="pv-brows"></div>
+      <div style="display:flex;gap:8px;align-items:baseline;margin-bottom:5px;font-size:13px"><span style="width:85px;flex-shrink:0;font-size:11px;color:var(--light)">Timing</span><span id="pv-timing">—</span></div>
+      <div style="display:flex;gap:8px;align-items:baseline;margin-bottom:5px;font-size:13px"><span style="width:85px;flex-shrink:0;font-size:11px;color:var(--light)">Rate</span><span id="pv-rate">—</span></div>
+      <div id="pv-bo-row" style="display:flex;gap:8px;align-items:baseline;margin-bottom:5px;font-size:12px"><span style="width:85px;flex-shrink:0;font-size:11px;color:var(--light)">Usage</span><span id="pv-bo" style="color:var(--mid)">—</span></div>
+      <div style="display:flex;gap:8px;align-items:baseline;font-size:13px"><span style="width:85px;flex-shrink:0;font-size:11px;color:var(--light)">Respond by</span><span id="pv-dl" style="font-weight:500;color:var(--re)">—</span></div>
+    </div>
+    <div id="pv-nda-badge" style="background:var(--am-bg);border:.5px solid var(--am-b);border-radius:var(--r);padding:11px 13px;font-size:12px;color:var(--am);margin-bottom:12px"><strong>NDA required.</strong> You will be asked to accept our Non-Disclosure Agreement. A countersigned copy is sent upon confirmation.</div>
+    <div class="fld"><label>Available?</label><div class="pills"><div class="pill on">Yes, available</div><div class="pill">Partially</div><div class="pill">Not available</div></div></div>
+    <div class="g2 fld"><div><label>Rate (EUR)</label><input type="number" disabled placeholder="Amount"></div><div><label>Type</label><select disabled><option>Per day</option><option>Total</option></select></div></div>
+    <div class="fld"><label>Message (optional)</label><textarea disabled style="min-height:52px" placeholder="Notes, conditions, questions…"></textarea></div>
+    <button class="btn bp" style="width:100%;justify-content:center" disabled>Send response →</button>
+  </div></div>
+</div>
+
+<!-- ═══ NDA SETTINGS ═══ -->
+<div class="panel" id="panel-nda-settings">
+  <div class="ph"><div class="ph-title">NDA templates</div><div class="ph-sub">Standard NDA v2.0 — auto-applied to every new request. Available in EN and DE.</div></div>
+  <div id="nda-settings-content"><div class="empty">Loading…</div></div>
+</div>
+
+</main>
+</div>
+
+<script>
+const SB='https://ocuxostmzpqlkktmlqsu.supabase.co';
+const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jdXhvc3RtenBxbGtrdG1scXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MTg2MTYsImV4cCI6MjA2MDk5NDYxNn0.FiuJFd4a7JkRMpBnhKn0O7NpJ_AguHYIjFNOIqLQ2Mg';
+const H={'Content-Type':'application/json','apikey':SK,'Authorization':'Bearer '+SK};
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const val=id=>document.getElementById(id)?.value?.trim()||'';
+const ROLES={production:['Photographer','Director','DOP','Camera Op','Gaffer','Grip','DigiTech','Set Designer','Stylist','Hair & Make-up'],creative_strategy:['Creative Director','Art Director','Copywriter','Brand Strategist','Concept Developer'],pre_production:['Producer','Production Manager','Line Producer','1st AD','Casting Director','Location Scout'],post_production:['Editor','Color Grader','Retoucher','VFX Artist','Motion Designer','Sound Designer'],hybrid:['CD + Director','Photographer + Retoucher','Multidisciplinary']};
+const GMAP={fotograf:'production',videograf:'production',dop:'production',digital_operator:'production',digitech:'production',gaffer:'production',styling:'production',set_design:'production',hmu:'production',art_direction:'creative_strategy',producer:'pre_production',casting:'pre_production',retusche:'post_production',post_production:'post_production'};
+let ST={phase:'production',rateType:'negotiable',timingType:'options',optCount:0,selPool:new Map(),invites:[],pool:[],talentFilter:'all',boardFilter:'all',boardData:[],ndaT:{en:'',de:''},ndaLang:'en',ndaCustom:null};
+
+// NAV
+function go(id,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));document.getElementById('panel-'+id).classList.add('on');if(btn)btn.classList.add('on');if(id==='board')loadBoard();if(id==='pool')renderPool();if(id==='preview')syncPv();if(id==='nda-settings')renderNdaSettings();}
+
+// NDA
+async function loadNdaTemplates(){const r=await fetch(`${SB}/rest/v1/artbuying_nda_templates?is_active=eq.true&select=language,body_text`,{headers:H});const data=await r.json();data.forEach(t=>{ST.ndaT[t.language]=t.body_text;});updateNdaPreview();}
+function updateNdaPreview(){const text=ST.ndaCustom||(ST.ndaT[ST.ndaLang]||'Loading…');document.getElementById('nda-preview-text').textContent=text;syncPv();}
+function setNdaLang(lang,btn){ST.ndaLang=lang;ST.ndaCustom=null;document.querySelectorAll('#nda-lang-seg .sb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');updateNdaPreview();}
+function openNdaEdit(){const cur=ST.ndaCustom||ST.ndaT[ST.ndaLang]||'';showModal(`<div class="modal-title">Edit NDA for this request</div><div class="modal-sub">Changes apply to this request only. Standard template is unchanged.</div><div class="fld"><textarea id="nda-edit-ta" style="min-height:320px;font-size:12px;line-height:1.6">${esc(cur)}</textarea></div><div class="brow-btns" style="margin-top:0;padding-top:14px"><button class="btn bg2" onclick="closeModal()">Cancel</button><button class="btn bg2 bsm" onclick="resetNda()">Reset to standard</button><button class="btn bp" onclick="saveNda()">Save for this request</button></div>`);}
+function saveNda(){ST.ndaCustom=document.getElementById('nda-edit-ta').value;closeModal();updateNdaPreview();toast('NDA updated for this request');}
+function resetNda(){ST.ndaCustom=null;closeModal();updateNdaPreview();toast('Reset to standard NDA');}
+function getNdaText(){return ST.ndaCustom||ST.ndaT[ST.ndaLang]||'';}
+function renderNdaSettings(){const w=document.getElementById('nda-settings-content');w.innerHTML=['en','de'].map(lang=>`<div class="card"><div class="clbl">Template ${lang.toUpperCase()} — v2.0 <span class="badge bok" style="margin-left:6px">Active</span></div><div style="background:var(--bg);border-radius:var(--r);padding:12px;font-size:11.5px;line-height:1.7;max-height:220px;overflow-y:auto;white-space:pre-wrap">${esc(ST.ndaT[lang]||'Not loaded')}</div><p style="font-size:11px;color:var(--light);margin-top:7px">To update globally, edit the <code>artbuying_nda_templates</code> table in Supabase.</p></div>`).join('');}
+
+// FORM
+function pickPhase(el){document.querySelectorAll('#phase-pills .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');ST.phase=el.dataset.v;renderRolePills();renderTP();syncPv();}
+function renderRolePills(){document.getElementById('role-pills').innerHTML=(ROLES[ST.phase]||[]).map(r=>`<div class="pill" onclick="pickRole(this)">${esc(r)}</div>`).join('');}
+function pickRole(el){document.querySelectorAll('#role-pills .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');document.getElementById('f-role-custom').value='';syncPv();}
+function pickTiming(el){document.querySelectorAll('#panel-new .seg .sb[data-v]').forEach(b=>b.classList.remove('on'));el.classList.add('on');ST.timingType=el.dataset.v;document.getElementById('t-fixed').style.display=ST.timingType==='fixed'?'':'none';document.getElementById('t-opts').style.display=ST.timingType==='options'?'':'none';document.getElementById('t-tbd').style.display=ST.timingType==='tbd'?'':'none';if(ST.timingType==='options'&&ST.optCount===0){addOpt();addOpt();}syncPv();}
+function pickRate(el){document.querySelectorAll('#rate-seg .sb').forEach(b=>b.classList.remove('on'));el.classList.add('on');ST.rateType=el.dataset.v;document.getElementById('rate-detail').style.display=ST.rateType!=='negotiable'?'':'none';syncPv();}
+function addOpt(){ST.optCount++;const l=String.fromCharCode(64+ST.optCount);const d=document.createElement('div');d.className='topt';d.id='opt-'+ST.optCount;d.innerHTML=`<span class="topt-l">Option ${l}</span><input type="date" id="of-${ST.optCount}" oninput="syncPv()"><input type="date" id="ot-${ST.optCount}" oninput="syncPv()"><button class="rmx" onclick="this.parentNode.remove();syncPv()">×</button>`;document.getElementById('opts-rows').appendChild(d);}
+function getOpts(){const o=[];document.querySelectorAll('[id^="of-"]').forEach(el=>{const n=el.id.replace('of-',''),f=el.value,t=document.getElementById('ot-'+n)?.value;const l='Option '+String.fromCharCode(64+parseInt(n));if(f)o.push({label:l,from:f,to:t||f});});return o;}
+function getRole(){return document.querySelector('#role-pills .pill.on')?.textContent||val('f-role-custom')||'Open';}
+
+// PREVIEW
+function syncPv(){
+  document.getElementById('pv-proj').textContent=val('f-proj')||'—';
+  document.getElementById('pv-role').textContent=getRole();
+  document.getElementById('pv-brows').innerHTML=[['b-type','Type'],['b-del','Deliverables'],['b-exp','Experience'],['b-loc','Location'],['b-notes','Notes']].map(([id,l])=>{const v=val(id);return v?`<div style="display:flex;gap:8px;align-items:baseline;margin-bottom:5px;font-size:13px"><span style="width:85px;flex-shrink:0;font-size:11px;color:var(--light)">${l}</span><span>${esc(v)}</span></div>`:''}).join('');
+  let tim='TBD';
+  if(ST.timingType==='fixed'){const f=val('tf-from'),t=val('tf-to');tim=f?(f+(t?' → '+t:'')):'Fixed (TBC)';}
+  else if(ST.timingType==='options'){const o=getOpts();tim=o.map(x=>`${x.label}: ${x.from}${x.to!==x.from?' → '+x.to:''}`).join(' · ')||'Options TBC';}
+  else tim=val('tbd-notes')||'Open';
+  document.getElementById('pv-timing').textContent=tim;
+  let rat='Negotiable — please state your rate';
+  if(ST.rateType==='day_rate'){const a=val('r-amt');rat=a?`€${a}/day`:'Day rate (TBC)';}
+  else if(ST.rateType==='total'){const a=val('r-amt');rat=a?`€${a} total`:'Lump sum (TBC)';}
+  document.getElementById('pv-rate').textContent=rat;
+  const bo=[val('buyout-desc'),val('buyout-territory')&&'Territory: '+val('buyout-territory'),val('buyout-duration')&&'Duration: '+val('buyout-duration'),val('buyout-channels')&&'Channels: '+val('buyout-channels')].filter(Boolean).join(' · ');
+  document.getElementById('pv-bo').textContent=bo||'—';document.getElementById('pv-bo-row').style.display=bo?'flex':'none';
+  const dl=val('d-date'),tm=val('d-time')||'18:00';
+  document.getElementById('pv-dl').textContent=dl?`${dl}, ${tm}`:'—';
+  document.getElementById('pv-nda-badge').style.display=document.getElementById('nda-req')?.checked?'block':'none';
+}
+
+// TALENT PICKER
+async function loadPool(){const r=await fetch(`${SB}/rest/v1/freelancers?select=id,name,email,crafts,past_clients,total_bookings,last_year_active&order=total_bookings.desc&limit=300`,{headers:{...H,'Prefer':'count=none'}});ST.pool=await r.json();const crafts=[...new Set(ST.pool.flatMap(f=>f.crafts||[]))].sort();const clients=[...new Set(ST.pool.flatMap(f=>f.past_clients||[]).filter(Boolean))].sort();const cs=document.getElementById('pool-craft'),cl=document.getElementById('pool-client');if(cs)crafts.forEach(c=>cs.innerHTML+=`<option value="${esc(c)}">${esc(c)}</option>`);if(cl)clients.forEach(c=>cl.innerHTML+=`<option value="${esc(c)}">${esc(c)}</option>`);renderTP();}
+function renderTP(){const q=val('ts-q').toLowerCase();const filt=ST.talentFilter;const mc=new Set(Object.entries(GMAP).filter(([k,v])=>v===ST.phase).map(([k])=>k));const list=ST.pool.filter(f=>{if(q&&!f.name?.toLowerCase().includes(q)&&!(f.crafts||[]).join(' ').toLowerCase().includes(q))return false;if(filt==='email'&&!f.email)return false;if(filt==='match'&&!(f.crafts||[]).some(c=>mc.has(c.toLowerCase())))return false;return true;}).slice(0,100);const c=document.getElementById('tp-rows');if(!list.length){c.innerHTML='<div class="empty">No results</div>';return;}c.innerHTML=list.map(f=>{const sel=ST.selPool.has(f.id);const tags=(f.crafts||[]).slice(0,4).map(c=>`<span class="gtag ${mc.has(c.toLowerCase())?'hl':''}">${esc(c)}</span>`).join('');const cli=(f.past_clients||[]).slice(0,2).map(esc).join(', ');return `<div class="ttr ${sel?'sel':''}" onclick="togglePool('${f.id}')"><input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();togglePool('${f.id}')"><div><div style="font-size:13px;font-weight:500">${esc(f.name||'—')}</div><div style="font-size:11px;color:var(--light)">${cli}</div></div><div class="gtags">${tags}</div><div style="font-size:11px;color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.email?esc(f.email):'<span style="font-style:italic;color:var(--light)">no email</span>'}</div><div style="font-size:12px;color:var(--mid);text-align:center">${f.last_year_active||'—'}</div></div>`;}).join('');document.getElementById('sel-count').textContent=`${ST.selPool.size} selected`;}
+function togglePool(id){const f=ST.pool.find(x=>x.id===id);if(!f)return;if(ST.selPool.has(id))ST.selPool.delete(id);else{if(!f.email)toast('No email — add manually');ST.selPool.set(id,f);}syncInvites();renderTP();}
+function setTF(f,el){ST.talentFilter=f;document.querySelectorAll('#tf-seg .sb').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderTP();}
+function syncInvites(){ST.invites=ST.invites.filter(x=>x.src==='manual');ST.selPool.forEach((f,id)=>{if(f.email)ST.invites.push({name:f.name,email:f.email,src:'pool',fid:id});});renderInviteList();}
+function addManual(){const name=document.getElementById('m-name').value.trim();const email=document.getElementById('m-email').value.trim();if(!email){toast('Email required');return;}if(ST.invites.find(x=>x.email===email)){toast('Already in list');return;}ST.invites.push({name:name||email.split('@')[0],email,src:'manual'});document.getElementById('m-name').value='';document.getElementById('m-email').value='';renderInviteList();}
+function removeInvite(email){ST.invites=ST.invites.filter(x=>x.email!==email);ST.selPool.forEach((f,k)=>{if(f.email===email)ST.selPool.delete(k);});renderTP();renderInviteList();}
+function renderInviteList(){document.getElementById('inv-list').innerHTML=ST.invites.map(c=>{const ini=c.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);const badge=c.src==='pool'?`<span class="badge bbl" style="font-size:10px;margin-left:5px">BRAIN</span>`:'';return `<div class="inv-item"><div class="av">${ini}</div><div><div style="font-size:13px;font-weight:500">${esc(c.name)}${badge}</div><div style="font-size:11px;color:var(--light)">${esc(c.email)}</div></div><button class="irm" onclick="removeInvite('${esc(c.email)}')" title="Remove">×</button></div>`;}).join('');}
+
+// SEND
+async function doSend(){if(!ST.invites.length){toast('Add at least one person');return;}if(!val('f-proj')){toast('Enter a project name');return;}const btn=document.getElementById('send-btn');btn.disabled=true;btn.innerHTML='<span class="spin"></span> Sending…';const deadline=val('d-date')?`${val('d-date')}T${val('d-time')||'18:00'}:00`:null;const payload={project_name:val('f-proj'),client_name:val('f-client')||null,craft_phase:ST.phase,craft_role:getRole(),craft_role_custom:val('f-role-custom')||null,briefing_raw:[val('b-type')&&`Type: ${val('b-type')}`,val('b-del')&&`Deliverables: ${val('b-del')}`,val('b-exp')&&`Experience: ${val('b-exp')}`,val('b-loc')&&`Location: ${val('b-loc')}`,val('b-notes')].filter(Boolean).join('\n')||null,timing_type:ST.timingType,timing_fixed_from:ST.timingType==='fixed'?(val('tf-from')||null):null,timing_fixed_to:ST.timingType==='fixed'?(val('tf-to')||null):null,timing_options:ST.timingType==='options'?getOpts():[],rate_type:ST.rateType,rate_amount:val('r-amt')?parseFloat(val('r-amt')):null,rate_notes:val('r-notes')||null,response_deadline:deadline,buyout_description:val('buyout-desc')||null,buyout_territory:val('buyout-territory')||null,buyout_duration:val('buyout-duration')||null,buyout_channels:val('buyout-channels')||null,nda_required:document.getElementById('nda-req')?.checked||false,nda_text:getNdaText()||null,nda_language:ST.ndaLang,nda_version:'v2.0',art_buyer_name:val('f-ab-name')||'The Gaabs Team',art_buyer_email:val('f-ab-email')||null,status:'sent',created_by:'art_buyer'};
+try{const r=await fetch(`${SB}/rest/v1/artbuying_requests`,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(payload)});if(!r.ok)throw new Error(await r.text());const reqId=(await r.json())[0]?.id;const invArr=ST.invites.map(c=>({request_id:reqId,contact_name:c.name,contact_email:c.email,freelancer_id:c.fid||null,sent_at:new Date().toISOString()}));const ir=await fetch(`${SB}/rest/v1/artbuying_invites`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(invArr)});if(!ir.ok)throw new Error(await ir.text());showAlert('ok',`✓ Request sent — ${ST.invites.length} invite${ST.invites.length>1?'s':''} dispatched.`);toast(`${ST.invites.length} invites sent`);setTimeout(()=>{go('board',document.querySelectorAll('.nb')[1]);},1200);}catch(err){showAlert('err','Error: '+err.message);console.error(err);}finally{btn.disabled=false;btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8l12-6-6 12V8H2z"/></svg> Send invites';}}
+
+// BOARD
+async function loadBoard(){document.getElementById('board-rows').innerHTML='<div class="empty">Loading…</div>';const r=await fetch(`${SB}/rest/v1/artbuying_invites?select=*,artbuying_requests(project_name,craft_role,timing_type,timing_options,timing_fixed_from,rate_type,rate_amount,nda_required,nda_text,buyout_description,buyout_territory,buyout_duration,buyout_channels)&order=created_at.desc&limit=200`,{headers:H});ST.boardData=await r.json();renderBoard();}
+function renderBoard(){const q=(document.getElementById('bq')?.value||'').toLowerCase();const f=ST.boardFilter;const filtered=ST.boardData.filter(i=>{const req=i.artbuying_requests;if(q&&!i.contact_name?.toLowerCase().includes(q)&&!req?.project_name?.toLowerCase().includes(q))return false;if(f==='awaiting'&&i.responded_at)return false;if(f==='available'&&i.availability_status!=='available')return false;if(f==='confirmed'&&i.decision!=='confirmed')return false;return true;});const d=ST.boardData;document.getElementById('bs-tot').textContent=d.length;document.getElementById('bs-resp').textContent=d.filter(i=>i.responded_at).length;document.getElementById('bs-avail').textContent=d.filter(i=>i.availability_status==='available').length;document.getElementById('bs-conf').textContent=d.filter(i=>i.decision==='confirmed').length;if(!filtered.length){document.getElementById('board-rows').innerHTML='<div class="empty">No entries.</div>';return;}
+const badge=i=>{if(i.decision==='confirmed')return '<span class="badge bok">Confirmed</span>';if(i.decision==='first_option')return '<span class="badge bbl">1st option</span>';if(i.decision==='declined')return '<span class="badge bn">Released</span>';if(!i.responded_at)return '<span class="badge bn">Awaiting</span>';if(i.availability_status==='available')return '<span class="badge bok">Available</span>';if(i.availability_status==='not_available')return '<span class="badge bre">Not available</span>';if(i.availability_status==='partially_available')return '<span class="badge bam">Partial</span>';return '<span class="badge bn">Responded</span>';};
+document.getElementById('board-rows').innerHTML=filtered.map(i=>{const req=i.artbuying_requests;const rate=i.proposed_rate?`€${i.proposed_rate}${i.proposed_rate_type==='day_rate'?'/d':' tot'}`:'—';const acts=[];if(i.availability_status==='available'&&i.decision==='pending')acts.push(`<button class="ap pi" onclick="setDec('${i.id}','first_option')">→ Hold</button>`);if(['available','partially_available','first_option'].includes(i.availability_status)&&i.decision!=='confirmed')acts.push(`<button class="ap pp" onclick="openBookingModal('${i.id}')">✓ Book</button>`);if(i.decision==='confirmed'&&!i.nda_sent_at)acts.push(`<button class="ap po" onclick="markNDA('${i.id}')">NDA →</button>`);if(!['declined','confirmed'].includes(i.decision))acts.push(`<button class="ap" onclick="setDec('${i.id}','declined')">Release</button>`);acts.push(`<button class="ap" onclick="copyLink('${i.token}')">Link</button>`);const ndaBadge=i.nda_accepted_at?`<span class="badge bok" style="font-size:10px;margin-left:4px">NDA ✓</span>`:(i.nda_sent_at?`<span class="badge bam" style="font-size:10px;margin-left:4px">NDA sent</span>`:'');return `<div class="btr"><div><div class="btr-name">${esc(i.contact_name||'—')}</div><div class="btr-sub">${esc(i.contact_email||'')}${ndaBadge}</div>${i.talent_message?`<div style="font-size:11px;color:var(--mid);margin-top:2px;font-style:italic">"${esc(i.talent_message.slice(0,70))}…"</div>`:''}</div><div><div style="font-size:13px">${esc(req?.project_name||'—')}</div><div class="btr-sub">${esc(req?.craft_role||'')}</div></div><div>${badge(i)}</div><div style="font-size:13px;color:var(--mid)">${rate}</div><div class="acts">${acts.join('')}</div></div>`;}).join('');}
+function setBF(f,el){ST.boardFilter=f;document.querySelectorAll('#bf-seg .sb').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderBoard();}
+async function setDec(id,decision){await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify({decision,decision_at:new Date().toISOString(),decision_by:'art_buyer'})});toast('Status updated');loadBoard();}
+async function markNDA(id){await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify({nda_sent_at:new Date().toISOString()})});toast('NDA marked as sent');loadBoard();}
+function copyLink(token){const url=`${window.location.origin}/whoisin-talent.html?token=${token}`;navigator.clipboard.writeText(url).then(()=>toast('Link copied!')).catch(()=>prompt('Copy link:',url));}
+
+// BOOKING MODAL
+function openBookingModal(invId){const inv=ST.boardData.find(x=>x.id===invId);if(!inv)return;const req=inv.artbuying_requests;const ndaOk=inv.nda_accepted_at;const boParts=[req?.buyout_description,req?.buyout_territory&&'Territory: '+req.buyout_territory,req?.buyout_duration&&'Duration: '+req.buyout_duration,req?.buyout_channels&&'Channels: '+req.buyout_channels].filter(Boolean);
+showModal(`<div class="modal-title">Confirm booking — ${esc(inv.contact_name)}</div><div class="modal-sub">Review all details before confirming. This logs the booking.</div>
+<div class="bsum">
+  <div class="bsrow"><span class="bslbl">Project</span><strong>${esc(req?.project_name||'—')}</strong></div>
+  <div class="bsrow"><span class="bslbl">Role</span><span>${esc(req?.craft_role||'—')}</span></div>
+  <div class="bsrow"><span class="bslbl">Proposed rate</span><strong>${inv.proposed_rate?`€${inv.proposed_rate} ${inv.proposed_rate_type==='day_rate'?'/ day':'total'}`:'Not specified'}</strong></div>
+  ${boParts.length?`<div class="bsrow" style="align-items:flex-start"><span class="bslbl">Usage rights</span><span style="font-size:12px;line-height:1.6">${boParts.map(esc).join('<br>')}</span></div>`:''}
+  <div class="bsrow"><span class="bslbl">NDA</span><span>${ndaOk?`<span class="badge bok">Accepted ${new Date(inv.nda_accepted_at).toLocaleDateString('de-DE')}</span>`:'<span class="badge bam">Not yet accepted by talent</span>'}</span></div>
+</div>
+<div class="fld"><label>Confirmed shoot dates</label><input type="text" id="conf-dates" placeholder="e.g. 07.07.–09.07.2025"></div>
+<div class="g2 fld">
+  <div><label>Final rate (EUR)</label><input type="number" id="conf-rate" value="${inv.proposed_rate||''}" placeholder="${inv.proposed_rate||'Amount'}"></div>
+  <div><label>Rate type</label><select id="conf-rate-type"><option value="day_rate" ${inv.proposed_rate_type==='day_rate'?'selected':''}>Per day</option><option value="total" ${inv.proposed_rate_type==='total'?'selected':''}>Total</option></select></div>
+</div>
+<div class="fld"><label>Internal note (optional)</label><input type="text" id="conf-note" placeholder="e.g. confirmed via call, DRS studio"></div>
+<div class="brow-btns" style="margin-top:0;padding-top:14px"><button class="btn bg2" onclick="closeModal()">Cancel</button><button class="btn bp" onclick="confirmBooking('${invId}')">✓ Confirm & log booking</button></div>`);}
+
+async function confirmBooking(invId){const inv=ST.boardData.find(x=>x.id===invId);if(!inv)return;const req=inv.artbuying_requests;const fr=document.getElementById('conf-rate')?.value?parseFloat(document.getElementById('conf-rate').value):inv.proposed_rate;const frt=document.getElementById('conf-rate-type')?.value||inv.proposed_rate_type||'day_rate';const fd=document.getElementById('conf-dates')?.value||null;const note=document.getElementById('conf-note')?.value||null;
+await fetch(`${SB}/rest/v1/artbuying_invites?id=eq.${invId}`,{method:'PATCH',headers:H,body:JSON.stringify({decision:'confirmed',decision_at:new Date().toISOString(),decision_by:'art_buyer',booking_confirmed_at:new Date().toISOString(),final_rate:fr,final_dates:fd})});
+await fetch(`${SB}/rest/v1/artbuying_booking_log`,{method:'POST',headers:H,body:JSON.stringify({invite_id:invId,request_id:inv.request_id,contact_name:inv.contact_name,contact_email:inv.contact_email,craft_phase:req?.craft_phase,craft_role:req?.craft_role,final_rate:fr,final_rate_type:frt,final_dates:fd,nda_accepted:!!inv.nda_accepted_at,booking_confirmed_by_talent:!!inv.booking_confirmed_by_talent_at,notes:note})});
+closeModal();toast('✓ Booking confirmed and logged');loadBoard();}
+
+// POOL
+function renderPool(){const q=(document.getElementById('pool-q')?.value||'').toLowerCase();const craft=document.getElementById('pool-craft')?.value||'';const client=document.getElementById('pool-client')?.value||'';const list=ST.pool.filter(f=>{if(q&&!f.name?.toLowerCase().includes(q)&&!(f.crafts||[]).join(' ').toLowerCase().includes(q)&&!(f.past_clients||[]).join(' ').toLowerCase().includes(q))return false;if(craft&&!(f.crafts||[]).includes(craft))return false;if(client&&!(f.past_clients||[]).includes(client))return false;return true;}).slice(0,200);document.getElementById('pool-count').textContent=`${list.length} results`;document.getElementById('pool-rows').innerHTML=list.map(f=>`<div class="btr" style="grid-template-columns:1fr 150px 130px 110px 75px"><div class="btr-name">${esc(f.name||'—')}</div><div class="gtags">${(f.crafts||[]).map(c=>`<span class="gtag">${esc(c)}</span>`).join('')}</div><div style="font-size:11px;color:var(--light)">${(f.past_clients||[]).slice(0,2).map(esc).join(', ')}</div><div style="font-size:11px;color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.email?esc(f.email):'<span style="font-style:italic;color:var(--light)">—</span>'}</div><div style="font-size:12px;color:var(--mid);text-align:center">${f.last_year_active||'—'}</div></div>`).join('');}
+
+// MODAL HELPERS
+function showModal(html){document.getElementById('modal-wrap').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;}
+function closeModal(){document.getElementById('modal-wrap').innerHTML='';}
+function showAlert(type,msg){['ok','err'].forEach(t=>{const el=document.getElementById(t+'-msg');el.classList.remove('on');el.textContent='';});const el=document.getElementById(type+'-msg');el.textContent=msg;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),5000);}
+let toastT;function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
+
+// INIT
+pickTiming(document.querySelector('.sb[data-v="options"]'));
+renderRolePills();loadPool();loadNdaTemplates();
+document.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input',syncPv));
+</script>
+</body>
+</html>
