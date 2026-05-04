@@ -2,7 +2,9 @@
   "outputDirectory": "dist",
   "routes": [
     { "handle": "filesystem" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/whoisin/whoisin-talent", "dest": "/whoisin/whoisin-talent.html" },
+    { "src": "/whoisin/whoisin-artbuyer", "dest": "/whoisin/whoisin-artbuyer.html" },
     { "src": "/whoisin(.*)", "dest": "/whoisin/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
