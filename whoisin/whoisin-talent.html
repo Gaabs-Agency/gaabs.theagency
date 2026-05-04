@@ -262,14 +262,59 @@ function rBrief(){
   </div>`;
 }
 
+
+// Determine overtime rule from craft_role
+function getOtRule(role){
+  if(!role) return 'artist_10h';
+  const r=role.toLowerCase();
+  const supporting=['assistant','styling','stylist','hmu','hair','make-up','makeup',
+    'digi','digitech','gaffer','grip','operator','cam op','camera op','production',
+    'producer','line producer','pm ','1st ad','casting','set design','runner'];
+  return supporting.some(s=>r.includes(s)) ? 'supporting_8h' : 'artist_10h';
+}
+function otLabel(rule){
+  return rule==='supporting_8h'
+    ? 'Overtime ab der 9. Stunde (regulärer Set-Tag = 8 Stunden)'
+    : 'Overtime ab der 11. Stunde (regulärer Set-Tag = 10 Stunden)';
+}
 // ═══ STEP 3: RESPONSE ═══════════════════════════════════════
 function rResp(){
   const req=REQ;
   const hasOpts=req?.timing_type==='options'&&req?.timing_options?.length;
+  const otRule=getOtRule(req?.craft_role);
+  let rateT='Auf Anfrage / verhandelbar';
+  if(req?.rate_type==='day_rate'&&req?.rate_amount) rateT=`€${req.rate_amount} / Tag`;
+  else if(req?.rate_type==='total'&&req?.rate_amount) rateT=`€${req.rate_amount} total`;
+  if(req?.rate_notes) rateT+=` (${x(req.rate_notes)})`;
+  RS.otRule=otRule;
+  const rateSection=req?.rate_type==='negotiable'
+    ? `<div class="fld"><label>Dein Honorar-Vorschlag</label>
+        <div class="g2">
+          <input type="number" id="inp-r" placeholder="Betrag (EUR)" value="${RS.rate}" oninput="RS.rate=this.value" min="0">
+          <select id="inp-rt" onchange="RS.rType=this.value">
+            <option value="day_rate" ${RS.rType==='day_rate'?'selected':''}>Pro Tag</option>
+            <option value="total" ${RS.rType==='total'?'selected':''}>Total / Pauschal</option>
+          </select>
+        </div></div>`
+    : `<div class="fld"><label>Budget-Bestätigung</label>
+        <div style="background:var(--bg);border:.5px solid var(--b2);border-radius:var(--r);padding:10px 13px;font-size:14px;margin-bottom:8px">
+          Angebotenes Budget: <strong>${x(rateT)}</strong>
+        </div>
+        <label style="margin-top:6px">Abweichender Vorschlag? <span style="font-weight:400;color:var(--l)">(leer lassen wenn du das Budget akzeptierst)</span></label>
+        <div class="g2">
+          <input type="number" id="inp-r" placeholder="Alternativbetrag (EUR)" value="${RS.rate}" oninput="RS.rate=this.value" min="0">
+          <select id="inp-rt" onchange="RS.rType=this.value">
+            <option value="day_rate" ${RS.rType==='day_rate'?'selected':''}>Pro Tag</option>
+            <option value="total" ${RS.rType==='total'?'selected':''}>Total / Pauschal</option>
+          </select>
+        </div></div>`;
+
   document.getElementById('root').innerHTML=`
   <div class="card">
     <div class="ctitle">Deine Rückmeldung</div>
     <div class="csub" style="margin-bottom:18px">Für <strong>${x(req?.project_name||'dieses Projekt')}</strong> — ${x(req?.craft_role||'')}</div>
+
+    <!-- Availability -->
     <div class="fld"><label>Bist du verfügbar?</label>
       <div class="av-grid">
         <div class="av-btn yes ${RS.avail==='available'?'on':''}" onclick="setA('available',this)"><span class="av-icon">✓</span>Ja, verfügbar</div>
@@ -277,6 +322,8 @@ function rResp(){
         <div class="av-btn no ${RS.avail==='not_available'?'on':''}" onclick="setA('not_available',this)"><span class="av-icon">✕</span>Nicht verfügbar</div>
       </div>
     </div>
+
+    <!-- Timing options -->
     ${hasOpts?`<div id="opts-w" style="${RS.avail==='not_available'?'display:none':''}">
       <label style="display:block;font-size:12px;color:var(--m);font-weight:500;margin-bottom:7px">Welche Termine passen dir?</label>
       ${(req.timing_options||[]).map((o,i)=>`<div class="opt-row ${RS.opts.has(o.label)?'on':''}" onclick="togO('${x(o.label)}',this)" id="or${i}">
@@ -285,57 +332,109 @@ function rResp(){
         <span style="font-size:14px">${x(o.from)}${o.to&&o.to!==o.from?' → '+x(o.to):''}</span>
       </div>`).join('')}
     </div>`:''}
-    <div id="rate-w" style="${RS.avail==='not_available'?'display:none':''}">
-      ${req?.rate_type==='negotiable'
-        ? `<div class="fld"><label>Dein Honorar-Vorschlag</label>
-            <div class="g2">
-              <input type="number" id="inp-r" placeholder="Betrag (EUR)" value="${RS.rate}" oninput="RS.rate=this.value" min="0">
-              <select id="inp-rt" onchange="RS.rType=this.value">
-                <option value="day_rate" ${RS.rType==='day_rate'?'selected':''}>Pro Tag</option>
-                <option value="total" ${RS.rType==='total'?'selected':''}>Total / Pauschal</option>
-              </select>
-            </div>
-           </div>`
-        : `<div class="fld">
-            <label>Budget-Bestätigung</label>
-            <div style="background:var(--bg);border:.5px solid var(--b2);border-radius:var(--r);padding:10px 13px;font-size:14px;margin-bottom:8px">
-              Angebotenes Budget: <strong>${x(rateT)}</strong>
-            </div>
-            <label style="margin-top:6px">Abweichender Vorschlag? <span style="font-weight:400;color:var(--l)">(leer lassen wenn du das Budget akzeptierst)</span></label>
-            <div class="g2">
-              <input type="number" id="inp-r" placeholder="Alternativbetrag (EUR)" value="${RS.rate}" oninput="RS.rate=this.value" min="0">
-              <select id="inp-rt" onchange="RS.rType=this.value">
-                <option value="day_rate" ${RS.rType==='day_rate'?'selected':''}>Pro Tag</option>
-                <option value="total" ${RS.rType==='total'?'selected':''}>Total / Pauschal</option>
-              </select>
-            </div>
-          </div>`
-      }
-    </div>
+
+    <!-- Rate -->
+    <div id="rate-w" style="${RS.avail==='not_available'?'display:none':''}">${rateSection}</div>
+
+    <!-- Travel from -->
     <div id="travel-w" style="${RS.avail==='not_available'?'display:none':''}">
       <div class="fld"><label>Anreise von / Travelling from <span style="font-weight:400;color:var(--l)">(Ort oder Stadt)</span></label>
         <input type="text" id="inp-travel" placeholder="z. B. Berlin, Hamburg, Köln, Remote" value="${RS.travel||''}" oninput="RS.travel=this.value">
       </div>
     </div>
+
+    <!-- Portfolio + Note -->
     <div class="fld"><label>Portfolio-Link <span style="font-weight:400;color:var(--l)">(optional)</span></label>
-      <input type="url" id="inp-portfolio" placeholder="https://yourportfolio.com" value="${RS.portfolio||''}" oninput="RS.portfolio=this.value" style="font-size:15px;padding:10px 12px;border:.5px solid var(--b2);border-radius:var(--r);width:100%;outline:none;font-family:inherit">
+      <input type="url" id="inp-portfolio" placeholder="https://yourportfolio.com" value="${RS.portfolio||''}" oninput="RS.portfolio=this.value">
     </div>
     <div class="fld">
       <label>Kurze Anmerkung <span style="font-weight:400;color:var(--l)">(optional — max. 280 Zeichen)</span></label>
       <textarea id="inp-m" placeholder="z. B. Equipment, Konditionen, Verfügbarkeitsvorbehalt…" maxlength="280" oninput="RS.msg=this.value;document.getElementById('char-count').textContent=this.value.length" style="min-height:72px">${RS.msg}</textarea>
       <div style="text-align:right;font-size:11px;color:var(--l);margin-top:3px"><span id="char-count">0</span> / 280</div>
     </div>
+
+    <!-- ── TERMS — only shown when available ── -->
+    <div id="terms-w" style="${RS.avail==='not_available'?'display:none':''}">
+      <div style="height:.5px;background:var(--b);margin:18px 0"></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--l);margin-bottom:12px">Konditionen & Geschäftsbedingungen</div>
+
+      <!-- Overtime -->
+      <div style="background:var(--bg);border:.5px solid var(--b2);border-radius:var(--r);padding:13px 15px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--t);margin-bottom:4px">Overtime-Regelung</div>
+        <div style="font-size:13px;color:var(--m);line-height:1.6;margin-bottom:10px">
+          Für deine Position gilt: <strong>${otLabel(otRule)}</strong>.<br>
+          Overtime wird in angefangenen Stunden berechnet und zusätzlich zum Tageshonorar vergütet.
+        </div>
+        <div class="acc-row ${RS.overtimeOk?'on':''}" id="ot-row" onclick="flipTerm('ot-row','overtimeOk','ot-cb')">
+          <input type="checkbox" id="ot-cb" ${RS.overtimeOk?'checked':''} onclick="event.stopPropagation();flipTerm('ot-row','overtimeOk','ot-cb')">
+          <span>Ich habe die Overtime-Regelung zur Kenntnis genommen und akzeptiere sie.</span>
+        </div>
+      </div>
+
+      <!-- Cancellation -->
+      <div style="background:var(--bg);border:.5px solid var(--b2);border-radius:var(--r);padding:13px 15px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--t);margin-bottom:4px">Stornierungsbedingungen</div>
+        <div style="font-size:13px;color:var(--m);line-height:1.65;margin-bottom:10px">
+          Im Falle einer Stornierung durch den Auftraggeber nach erfolgter Buchungsbestätigung gilt:<br>
+          <span style="display:inline-block;margin-top:6px;line-height:1.8">
+            <strong>30 %</strong> des vereinbarten Honorars bei Stornierung weniger als 9 Tage vor dem bestätigten Ausführungsdatum<br>
+            <strong>50 %</strong> bei weniger als 5 Tagen<br>
+            <strong>100 %</strong> bei weniger als 3 Tagen
+          </span>
+        </div>
+        <div class="acc-row ${RS.cancelOk?'on':''}" id="cancel-row" onclick="flipTerm('cancel-row','cancelOk','cancel-cb')">
+          <input type="checkbox" id="cancel-cb" ${RS.cancelOk?'checked':''} onclick="event.stopPropagation();flipTerm('cancel-row','cancelOk','cancel-cb')">
+          <span>Ich habe die Stornierungsbedingungen gelesen und akzeptiere sie.</span>
+        </div>
+      </div>
+
+      <!-- Not yet binding -->
+      <div style="background:var(--am-bg);border:.5px solid var(--am-b);border-radius:var(--r);padding:13px 15px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--am);margin-bottom:4px">Noch keine verbindliche Buchung</div>
+        <div style="font-size:13px;color:var(--am);line-height:1.6;margin-bottom:10px">
+          Diese Rückmeldung ist eine unverbindliche Verfügbarkeitsangabe. Eine verbindliche Buchung erfolgt erst durch eine separate schriftliche Buchungsbestätigung von The Gaabs GmbH.
+        </div>
+        <div class="acc-row ${RS.notBindingOk?'on':''}" id="nb-row" onclick="flipTerm('nb-row','notBindingOk','nb-cb')" style="${RS.notBindingOk?'border-color:var(--am-b);background:rgba(254,243,199,.6)':''}">
+          <input type="checkbox" id="nb-cb" ${RS.notBindingOk?'checked':''} onclick="event.stopPropagation();flipTerm('nb-row','notBindingOk','nb-cb')">
+          <span>Ich verstehe, dass diese Rückmeldung <strong>noch keine verbindliche Buchung</strong> darstellt.</span>
+        </div>
+      </div>
+    </div>
+
     <div class="a-warn" id="a-warn">Bitte oben angeben, ob du verfügbar bist.</div>
+    <div class="a-warn" id="terms-warn">Bitte alle drei Punkte unter Konditionen bestätigen.</div>
     <button class="btn bp" id="sub-btn" onclick="doSubmit()" ${RS.avail?'':'disabled'}>Antwort absenden →</button>
     <p style="font-size:11px;color:var(--l);text-align:center;margin-top:9px">Sofort gespeichert. Kein Account erforderlich.</p>
   </div>`;
 }
-function setA(val,el){RS.avail=val;document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');const ow=document.getElementById('opts-w'),rw=document.getElementById('rate-w'),tw=document.getElementById('travel-w');if(ow)ow.style.display=val==='not_available'?'none':'';if(rw)rw.style.display=val==='not_available'?'none':'';if(tw)tw.style.display=val==='not_available'?'none':'';document.getElementById('sub-btn').disabled=false;}
+function flipTerm(rowId,key,cbId){
+  RS[key]=!RS[key];
+  const row=document.getElementById(rowId);
+  const cb=document.getElementById(cbId);
+  if(row) row.classList.toggle('on',RS[key]);
+  if(cb) cb.checked=RS[key];
+}
+function setA(val,el){
+  RS.avail=val;
+  document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  const hide=val==='not_available';
+  ['opts-w','rate-w','travel-w','terms-w'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=hide?'none':'';
+  });
+  document.getElementById('sub-btn').disabled=false;
+}
 function togO(label,row){if(RS.opts.has(label))RS.opts.delete(label);else RS.opts.add(label);const cb=row.querySelector('input');if(cb)cb.checked=RS.opts.has(label);row.classList.toggle('on',RS.opts.has(label));}
 
 async function doSubmit(){
   const btn=document.getElementById('sub-btn');
   if(!RS.avail){document.getElementById('a-warn').style.display='block';return;}
+  if(RS.avail!=='not_available'&&(!RS.overtimeOk||!RS.cancelOk||!RS.notBindingOk)){
+    document.getElementById('terms-warn').style.display='block';
+    document.getElementById('terms-warn').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
   btn.disabled=true;btn.textContent='Wird gesendet…';
   const notes=[RS.opts.size?'Verfügbar für: '+[...RS.opts].join(', '):'',RS.msg].filter(Boolean).join('\n');
   try{
@@ -346,7 +445,7 @@ async function doSubmit(){
       availability_notes:notes||null,
       proposed_rate:RS.rate?parseFloat(RS.rate):null,
       proposed_rate_type:RS.rType,
-      talent_travel_from:RS.travel||null,talent_message:RS.msg||null,talent_portfolio_url:RS.portfolio||null,talent_note:RS.msg||null,
+      overtime_rule:RS.avail!=='not_available'?(RS.otRule||null):null,overtime_accepted_at:RS.avail!=='not_available'&&RS.overtimeOk?new Date().toISOString():null,cancellation_accepted_at:RS.avail!=='not_available'&&RS.cancelOk?new Date().toISOString():null,talent_travel_from:RS.travel||null,talent_message:RS.msg||null,talent_portfolio_url:RS.portfolio||null,talent_note:RS.msg||null,
       availability_option_a:RS.opts.has('Option A'),
       availability_option_b:RS.opts.has('Option B'),
       availability_option_c:RS.opts.has('Option C'),
