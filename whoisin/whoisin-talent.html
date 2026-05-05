@@ -1,1 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Who's In — Verfügbarkeitsanfrage</title>
+<style>
+:root{
+  --bg:#f5f4f0;--s:#fff;--b:#e8e6df;--b2:#d0cdc4;
+  --t:#181714;--m:#6b6860;--l:#9e9b93;
+  --ok:#166534;--ok-bg:#f0fdf4;--ok-b:#bbf7d0;
+  --am:#92400e;--am-bg:#fffbeb;--am-b:#fde68a;
+  --re:#991b1b;--re-bg:#fef2f2;--re-b:#fecaca;
+  --r:10px;--rl:14px;
+  font-size:16px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:var(--t)
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px 16px 80px}
+.wrap{width:100%;max-width:580px}
 
+/* HEADER */
+.hdr{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.logo-sq{width:28px;height:28px;background:var(--t);border-radius:6px;display:grid;place-items:center;flex-shrink:0}
+.logo-sq svg{fill:white;width:14px;height:14px}
+.lname{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.ltag{font-size:10px;color:var(--l);letter-spacing:.06em;text-transform:uppercase}
+
+/* STEP BAR */
+.sbar{display:flex;align-items:center;margin-bottom:22px}
+.stp{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--l)}
+.stp.act{color:var(--t);font-weight:500}
+.stp.dn{color:var(--ok)}
+.sdot{width:22px;height:22px;border-radius:50%;border:.5px solid var(--b2);display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--l);flex-shrink:0;background:var(--s)}
+.stp.act .sdot{border-color:var(--t);background:var(--t);color:white}
+.stp.dn .sdot{border-color:var(--ok-b);background:var(--ok-bg);color:var(--ok)}
+.sl{flex:1;height:.5px;background:var(--b);margin:0 8px}
+
+/* CARD */
+.card{background:var(--s);border:.5px solid var(--b);border-radius:var(--rl);padding:24px 26px;margin-bottom:12px}
+.ctitle{font-size:18px;font-weight:600;letter-spacing:-.4px;margin-bottom:5px}
+.csub{font-size:13px;color:var(--m);line-height:1.55;margin-bottom:20px}
+
+/* NDA */
+.warn-box{background:var(--am-bg);border:.5px solid var(--am-b);border-radius:var(--r);padding:11px 13px;font-size:13px;color:var(--am);display:flex;gap:8px;margin-bottom:14px;line-height:1.5;align-items:flex-start}
+.nda-scroll{background:var(--bg);border:.5px solid var(--b2);border-radius:var(--r);padding:18px 20px;margin-bottom:16px;max-height:340px;overflow-y:auto;font-size:13px;line-height:1.75;color:var(--m);white-space:pre-wrap;font-family:inherit}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sig-fld label{display:block;font-size:11px;color:var(--l);margin-bottom:4px;font-weight:500}
+.sig-input{width:100%;border:.5px solid var(--b2);border-radius:var(--r);background:var(--s);color:var(--t);font-size:14px;font-family:inherit;padding:9px 11px;outline:none;transition:border-color .12s}
+.sig-input:focus{border-color:var(--t)}
+.sig-input.ro{background:var(--bg);color:var(--m);cursor:default}
+.acc-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:.5px solid var(--b2);border-radius:var(--r);cursor:pointer;transition:all .1s;margin-bottom:14px;font-size:13px;line-height:1.55}
+.acc-row:hover{background:var(--bg)}
+.acc-row.on{border-color:var(--ok-b);background:var(--ok-bg)}
+.acc-row input[type=checkbox]{width:15px;height:15px;margin-top:2px;accent-color:var(--t);flex-shrink:0}
+.nda-stamp{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ok);background:var(--ok-bg);border:.5px solid var(--ok-b);border-radius:20px;padding:4px 12px;margin-bottom:14px}
+
+/* BRIEFING */
+.sec-hd{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--l);margin-bottom:9px}
+.brow{display:flex;gap:10px;align-items:baseline;margin-bottom:7px;font-size:14px}
+.blbl{font-size:11px;color:var(--l);width:86px;flex-shrink:0}
+.divider{height:.5px;background:var(--b);margin:14px 0}
+.dl-pill{display:inline-flex;align-items:center;gap:5px;background:var(--re-bg);color:var(--re);border:.5px solid var(--re-b);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:500}
+
+/* RESPONSE */
+.av-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}
+.av-btn{padding:12px 6px;border:.5px solid var(--b2);border-radius:var(--r);text-align:center;cursor:pointer;font-size:13px;font-weight:500;color:var(--m);background:var(--s);transition:all .12s;user-select:none;line-height:1.3}
+.av-btn:hover{border-color:var(--t);color:var(--t)}
+.av-icon{font-size:16px;display:block;margin-bottom:4px}
+.av-btn.on.yes{background:var(--ok);color:white;border-color:var(--ok)}
+.av-btn.on.part{background:#854d0e;color:white;border-color:#854d0e}
+.av-btn.on.no{background:var(--re);color:white;border-color:var(--re)}
+.opt-row{display:flex;align-items:center;gap:10px;padding:11px 13px;border:.5px solid var(--b);border-radius:var(--r);margin-bottom:7px;cursor:pointer;transition:all .1s}
+.opt-row:hover{background:var(--bg)}
+.opt-row.on{background:#f0efe9;border-color:var(--b2)}
+.opt-lbl{font-size:13px;font-weight:600;width:68px;flex-shrink:0;color:var(--m)}
+.fld{margin-bottom:13px}
+.fld label{display:block;font-size:12px;color:var(--m);font-weight:500;margin-bottom:5px}
+input[type=number],select,textarea{width:100%;border:.5px solid var(--b2);border-radius:var(--r);background:var(--s);color:var(--t);font-size:15px;font-family:inherit;padding:10px 12px;outline:none;transition:border-color .12s}
+input:focus,select:focus,textarea:focus{border-color:var(--t)}
+select{height:42px;cursor:pointer}
+textarea{resize:vertical;min-height:80px;line-height:1.55}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=checkbox]{width:15px;height:15px;accent-color:var(--t);cursor:pointer;flex-shrink:0}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 20px;border-radius:var(--r);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .12s;border:.5px solid transparent;width:100%;line-height:1}
+.bp{background:var(--t);color:white;border-color:var(--t)}.bp:hover{opacity:.87}.bp:disabled{opacity:.3;cursor:not-allowed}
+.spin-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:60px 20px;color:var(--m);font-size:14px}
+.spin{width:28px;height:28px;border:2.5px solid var(--b);border-top-color:var(--t);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.sc{text-align:center;padding:44px 20px}
+.sc-icon{font-size:40px;opacity:.3;margin-bottom:14px}
+.sctitle{font-size:20px;font-weight:600;letter-spacing:-.4px;margin-bottom:8px}
+.scsub{font-size:14px;color:var(--m);line-height:1.65}
+.chk-c{width:52px;height:52px;border-radius:50%;background:var(--ok-bg);border:.5px solid var(--ok-b);display:grid;place-items:center;margin:0 auto 16px}
+.a-warn{display:none;background:var(--am-bg);border:.5px solid var(--am-b);border-radius:var(--r);padding:10px 13px;font-size:13px;color:var(--am);margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="logo-sq"><svg viewBox="0 0 14 14"><circle cx="7" cy="5.5" r="2.8"/><path d="M1.5 13.5c0-3.038 2.462-5.5 5.5-5.5s5.5 2.462 5.5 5.5"/></svg></div>
+    <div><div class="lname">Who's In</div><div class="ltag">The Gaabs · Art Buying</div></div>
+  </div>
+  <div class="sbar" id="sbar" style="display:none">
+    <div class="stp" id="s1"><div class="sdot">1</div>NDA</div>
+    <div class="sl"></div>
+    <div class="stp" id="s2"><div class="sdot">2</div>Briefing</div>
+    <div class="sl"></div>
+    <div class="stp" id="s3"><div class="sdot">3</div>Antwort</div>
+  </div>
+  <div id="root"></div>
+</div>
+<script>
+// ── PROXY CONFIG — no Supabase keys in this file ──
+const PROXY = 'https://gaabs-theagency-flax.vercel.app/api/whoisin';
+async function sbGet(table,{select='*',filter='',order='',limit=''}={}) {
+  const p=new URLSearchParams({table});
+  if(select) p.set('select',select);
+  if(filter) p.set('filter',filter);
+  if(order) p.set('order',order);
+  if(limit) p.set('limit',limit);
+  return fetch(`${PROXY}?${p.toString()}`,{headers:{'Content-Type':'application/json'}});
+}
+async function sbPatch(table,filter,body) {
+  const p=new URLSearchParams({table});if(filter)p.set('filter',filter);
+  return fetch(`${PROXY}?${p}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+}
+const x=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const today=()=>new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'});
+
+let INV=null,REQ=null,STEP=1;
+const RS={avail:null,opts:new Set(),rate:'',rType:'day_rate',msg:'',ndaName:'',ndaOk:false};
+
+// ═══ INIT ═══════════════════════════════════════════════════
+async function init(){
+  const token=new URLSearchParams(location.search).get('token');
+  if(!token){showErr('invalid');return;}
+  show('loading');
+  try{
+    // Step 1: fetch invite by token
+    const res=await sbGet('artbuying_invites',{select:'*',filter:`token=eq.${token}`});
+    const data=await res.json();
+    if(!Array.isArray(data)||!data.length){showErr('notfound');return;}
+    INV=data[0];
+    // Step 2: fetch the request separately
+    const reqRes=await sbGet('artbuying_requests',{select:'*',filter:`id=eq.${INV.request_id}`});
+    const reqData=await reqRes.json();
+    REQ=Array.isArray(reqData)&&reqData.length?reqData[0]:null;
+    if(INV.responded_at){show('already');return;}
+    if(REQ?.response_deadline&&new Date(REQ.response_deadline)<new Date()){show('expired');return;}
+    // Mark viewed
+    sbPatch('artbuying_invites',`id=eq.${INV.id}`,{viewed_at:new Date().toISOString()});
+    // Resume if NDA already accepted
+    if(INV.nda_gate_passed_at){RS.ndaOk=true;RS.ndaName=INV.nda_accepted_name||INV.contact_name||'';STEP=2;}
+    else if(!REQ?.nda_required){STEP=2;}
+    else STEP=1;
+    document.getElementById('sbar').style.display='flex';
+    go();
+  }catch(e){showErr('network');console.error(e);}
+}
+
+function setSteps(a){
+  [1,2,3].forEach(n=>{
+    const el=document.getElementById('s'+n);
+    el.className='stp'+(n<a?' dn':n===a?' act':'');
+    const dot=el.querySelector('.sdot');
+    dot.innerHTML=n<a?`<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`:String(n);
+  });
+  if(!REQ?.nda_required) document.getElementById('s1').style.opacity='0.35';
+}
+
+function go(){setSteps(STEP);if(STEP===1)rNDA();else if(STEP===2)rBrief();else rResp();}
+
+// ═══ STEP 1: NDA ════════════════════════════════════════════
+function rNDA(){
+  const name=INV.contact_name||'';
+  const d=today();
+  // Use NDA text stored on the request (the exact version that was current when the request was sent)
+  // Fall back to inline English template if none stored
+  const ndaLang=REQ?.nda_language||'en';
+  const customText=REQ?.nda_text||null;
+  const ndaDisplay=customText||defaultNDA(ndaLang,name,d);
+  const titleDE='Geheimhaltungsvereinbarung (NDA)';
+  const titleEN='Non-Disclosure Agreement (NDA)';
+  const isDE=ndaLang==='de';
+
+  document.getElementById('root').innerHTML=`
+  <div class="card">
+    <div class="ctitle">${isDE?titleDE:titleEN}</div>
+    <div class="csub">${isDE?'Bitte lese die Vereinbarung sorgfältig. Das vollständige Briefing und die Projektdetails sind erst nach Annahme sichtbar.':'Please read this agreement carefully. The full briefing and project details are only visible after acceptance.'}</div>
+    <div class="warn-box"><span style="flex-shrink:0;font-size:16px">⚠</span><span>${isDE?'Das Briefing enthält vertrauliche Projekt- und Kundeninformationen. Die NDA muss vor Einsicht akzeptiert werden.':'The briefing contains confidential project and client information. The NDA must be accepted before access is granted.'}</span></div>
+    <div class="nda-scroll">${x(ndaDisplay)}</div>
+    <div style="font-size:12px;font-weight:500;color:var(--m);margin-bottom:9px">${isDE?'Digitale Unterzeichnung':'Digital Signature'}</div>
+    <div class="sig-grid">
+      <div class="sig-fld"><label>${isDE?'Vor- und Nachname':'Full name'}</label><input type="text" class="sig-input" id="sig-n" placeholder="${x(name)}" value="${x(name)}" oninput="chkNDA()"></div>
+      <div class="sig-fld"><label>${isDE?'Datum':'Date'}</label><input type="text" class="sig-input ro" value="${x(d)}" readonly></div>
+    </div>
+    <div class="acc-row" id="acc-row" onclick="flipNDA()">
+      <input type="checkbox" id="nda-cb">
+      <span>${isDE?'Ich habe die Geheimhaltungsvereinbarung gelesen und akzeptiere sie verbindlich. Mir ist bewusst, dass Name, Datum und Zeitstempel zur Dokumentation gespeichert werden.':'I have read the Non-Disclosure Agreement and accept it as legally binding. I understand that my name, date, and timestamp are stored for documentation purposes.'}</span>
+    </div>
+    <button class="btn bp" id="nda-btn" disabled onclick="doNDA()">${isDE?'NDA akzeptieren &amp; Briefing ansehen →':'Accept NDA &amp; view briefing →'}</button>
+    <p style="font-size:11px;color:var(--l);text-align:center;margin-top:9px">${isDE?'Zeitstempel und IP-Adresse werden protokolliert.':'Timestamp and IP address are logged.'}</p>
+  </div>`;
+}
+function flipNDA(){const cb=document.getElementById('nda-cb');cb.checked=!cb.checked;document.getElementById('acc-row').classList.toggle('on',cb.checked);chkNDA();}
+function chkNDA(){const ok=document.getElementById('nda-cb')?.checked&&document.getElementById('sig-n')?.value?.trim();document.getElementById('nda-btn').disabled=!ok;}
+async function doNDA(){
+  const btn=document.getElementById('nda-btn');btn.disabled=true;btn.textContent='Speichere…';
+  RS.ndaName=document.getElementById('sig-n').value.trim();RS.ndaOk=true;
+  try{
+    await sbPatch('artbuying_invites',`id=eq.${INV.id}`,{
+      nda_gate_passed_at:new Date().toISOString(),
+      nda_accepted_at:new Date().toISOString(),
+      nda_accepted_name:RS.ndaName,
+      nda_accepted_ip:null,// IP captured server-side in real deployment
+    });
+    STEP=2;go();
+  }catch(e){btn.disabled=false;btn.textContent='NDA akzeptieren & Briefing ansehen →';alert('Fehler. Bitte erneut versuchen.');console.error(e);}
+}
+
+// ═══ STEP 2: BRIEFING ═══════════════════════════════════════
+function rBrief(){
+  const req=REQ;
+  const isDE=req?.nda_language==='de'||true; // always DE UX
+  const dl=req?.response_deadline?new Date(req.response_deadline):null;
+  const dlS=dl?dl.toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'})+', '+dl.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr':null;
+  const brows=[];
+  (req?.briefing_raw||'').split('\n').forEach(line=>{if(!line.trim())return;const i=line.indexOf(': ');if(i>0)brows.push({l:line.slice(0,i),v:line.slice(i+2)});else brows.push({l:'',v:line});});
+  let timH='';
+  if(req?.timing_type==='fixed'){timH=`<div class="brow"><span class="blbl">Zeitraum</span><span style="font-weight:500">${x(req.timing_fixed_from||'TBC')}${req.timing_fixed_to?' → '+x(req.timing_fixed_to):''}</span></div>`;}
+  else if(req?.timing_type==='options'&&req?.timing_options?.length){timH=`<div style="font-size:12px;color:var(--m);margin-bottom:7px">Mehrere Terminoptionen — bitte im nächsten Schritt angeben, welche passen.</div>`+(req.timing_options||[]).map(o=>`<div class="brow"><span class="blbl">${x(o.label)}</span><span style="font-weight:500">${x(o.from)}${o.to&&o.to!==o.from?' → '+x(o.to):''}</span></div>`).join('');}
+  else timH=`<div class="brow"><span class="blbl">Timing</span><span style="color:var(--m)">Wird noch festgelegt</span></div>`;
+  let rateT='Honorar: Bitte im nächsten Schritt angeben.';
+  if(req?.rate_type==='day_rate'&&req?.rate_amount)rateT=`Budget: €${req.rate_amount} / Tag`;
+  else if(req?.rate_type==='total'&&req?.rate_amount)rateT=`Budget: €${req.rate_amount} total`;
+  if(req?.rate_notes)rateT+=` (${x(req.rate_notes)})`;
+  const buyParts=[req?.buyout_description,req?.buyout_territory&&'Territory: '+req.buyout_territory,req?.buyout_duration&&'Duration: '+req.buyout_duration,req?.buyout_channels&&'Channels: '+req.buyout_channels].filter(Boolean);
+
+  document.getElementById('root').innerHTML=`
+  <div class="card">
+    ${RS.ndaOk?`<div class="nda-stamp"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>NDA akzeptiert — ${x(RS.ndaName)} · ${today()}</div>`:''}
+    <div class="ctitle">Projektbriefing</div>
+    <div class="csub">Lies die Details unten — danach kannst du deine Verfügbarkeit und Rate angeben.</div>
+    <div class="sec-hd">Projekt & Position</div>
+    <div class="brow"><span class="blbl">Projekt</span><span style="font-weight:500">${x(req?.project_name||'—')}</span></div>
+    ${req?.client_name?`<div class="brow"><span class="blbl">Kunde</span><span style="font-weight:500">${x(req.client_name)}</span></div>`:''}
+    <div class="brow"><span class="blbl">Position</span><span>${x(req?.craft_role||'—')}</span></div>
+    ${brows.length?`<div class="divider"></div><div class="sec-hd">Details</div>${brows.map(r=>r.l?`<div class="brow"><span class="blbl">${x(r.l)}</span><span>${x(r.v)}</span></div>`:`<div style="font-size:14px;color:var(--m);line-height:1.65;margin-bottom:7px">${x(r.v)}</div>`).join('')}`:''}
+    <div class="divider"></div>
+    <div class="sec-hd">Timing</div>${timH}
+    <div class="divider"></div>
+    <div class="sec-hd">Honorar & Usage</div>
+    <div class="brow"><span class="blbl">Rate</span><span style="color:var(--m)">${x(rateT)}</span></div>
+    ${buyParts.length?`<div class="brow" style="align-items:flex-start"><span class="blbl">Usage</span><div style="font-size:13px;color:var(--m);line-height:1.7">${buyParts.map(x).join('<br>')}</div></div>`:''}
+    ${dlS?`<div class="divider"></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:13px;color:var(--m)">Bitte antworten bis</span><span class="dl-pill"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 2"/></svg>${x(dlS)}</span></div>`:''}
+    <div style="margin-top:20px"><button class="btn bp" onclick="STEP=3;go()">Weiter zur Rückmeldung →</button></div>
+  </div>`;
+}
+
+// ═══ STEP 3: RESPONSE ═══════════════════════════════════════
+function rResp(){
+  const req=REQ;
+  const hasOpts=req?.timing_type==='options'&&req?.timing_options?.length;
+  document.getElementById('root').innerHTML=`
+  <div class="card">
+    <div class="ctitle">Deine Rückmeldung</div>
+    <div class="csub" style="margin-bottom:18px">Für <strong>${x(req?.project_name||'dieses Projekt')}</strong> — ${x(req?.craft_role||'')}</div>
+    <div class="fld"><label>Bist du verfügbar?</label>
+      <div class="av-grid">
+        <div class="av-btn yes ${RS.avail==='available'?'on':''}" onclick="setA('available',this)"><span class="av-icon">✓</span>Ja, verfügbar</div>
+        <div class="av-btn part ${RS.avail==='partially_available'?'on':''}" onclick="setA('partially_available',this)"><span class="av-icon">~</span>Teilweise</div>
+        <div class="av-btn no ${RS.avail==='not_available'?'on':''}" onclick="setA('not_available',this)"><span class="av-icon">✕</span>Nicht verfügbar</div>
+      </div>
+    </div>
+    ${hasOpts?`<div id="opts-w" style="${RS.avail==='not_available'?'display:none':''}">
+      <label style="display:block;font-size:12px;color:var(--m);font-weight:500;margin-bottom:7px">Welche Termine passen dir?</label>
+      ${(req.timing_options||[]).map((o,i)=>`<div class="opt-row ${RS.opts.has(o.label)?'on':''}" onclick="togO('${x(o.label)}',this)" id="or${i}">
+        <input type="checkbox" ${RS.opts.has(o.label)?'checked':''} onclick="event.stopPropagation();togO('${x(o.label)}',document.getElementById('or${i}'))">
+        <span class="opt-lbl">${x(o.label)}</span>
+        <span style="font-size:14px">${x(o.from)}${o.to&&o.to!==o.from?' → '+x(o.to):''}</span>
+      </div>`).join('')}
+    </div>`:''}
+    <div id="rate-w" style="${RS.avail==='not_available'?'display:none':''}">
+      <div class="fld"><label>Dein Honorar</label>
+        <div class="g2">
+          <input type="number" id="inp-r" placeholder="Betrag (EUR)" value="${RS.rate}" oninput="RS.rate=this.value" min="0">
+          <select id="inp-rt" onchange="RS.rType=this.value">
+            <option value="day_rate" ${RS.rType==='day_rate'?'selected':''}>Pro Tag</option>
+            <option value="total" ${RS.rType==='total'?'selected':''}>Total / Pauschal</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="fld"><label>Nachricht an Art Buyer <span style="font-weight:400;color:var(--l)">(optional)</span></label>
+      <textarea id="inp-m" placeholder="Fragen, Anmerkungen, Konditionen, besondere Ausstattung…" oninput="RS.msg=this.value">${RS.msg}</textarea>
+    </div>
+    <div class="a-warn" id="a-warn">Bitte oben angeben, ob du verfügbar bist.</div>
+    <button class="btn bp" id="sub-btn" onclick="doSubmit()" ${RS.avail?'':'disabled'}>Antwort absenden →</button>
+    <p style="font-size:11px;color:var(--l);text-align:center;margin-top:9px">Sofort gespeichert. Kein Account erforderlich.</p>
+  </div>`;
+}
+function setA(val,el){RS.avail=val;document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');const ow=document.getElementById('opts-w'),rw=document.getElementById('rate-w');if(ow)ow.style.display=val==='not_available'?'none':'';if(rw)rw.style.display=val==='not_available'?'none':'';document.getElementById('sub-btn').disabled=false;}
+function togO(label,row){if(RS.opts.has(label))RS.opts.delete(label);else RS.opts.add(label);const cb=row.querySelector('input');if(cb)cb.checked=RS.opts.has(label);row.classList.toggle('on',RS.opts.has(label));}
+
+async function doSubmit(){
+  const btn=document.getElementById('sub-btn');
+  if(!RS.avail){document.getElementById('a-warn').style.display='block';return;}
+  btn.disabled=true;btn.textContent='Wird gesendet…';
+  const notes=[RS.opts.size?'Verfügbar für: '+[...RS.opts].join(', '):'',RS.msg].filter(Boolean).join('\n');
+  try{
+    const r=await sbPatch('artbuying_invites',`id=eq.${INV.id}`,{
+      responded_at:new Date().toISOString(),
+      interested:RS.avail!=='not_available',
+      availability_status:RS.avail,
+      availability_notes:notes||null,
+      proposed_rate:RS.rate?parseFloat(RS.rate):null,
+      proposed_rate_type:RS.rType,
+      talent_message:RS.msg||null,
+      availability_option_a:RS.opts.has('Option A'),
+      availability_option_b:RS.opts.has('Option B'),
+      availability_option_c:RS.opts.has('Option C'),
+      decision:'pending',
+    });
+    if(!r.ok) throw new Error(await r.text());
+    rDone();
+  }catch(e){btn.disabled=false;btn.textContent='Antwort absenden →';alert('Fehler. Bitte erneut versuchen oder The Gaabs direkt kontaktieren.');console.error(e);}
+}
+
+// ═══ SUCCESS STATE ═══════════════════════════════════════════
+function rDone(){
+  document.getElementById('sbar').style.display='none';
+  document.getElementById('root').innerHTML=`
+  <div class="card"><div class="sc">
+    <div class="chk-c"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><polyline points="4,11 9,16 18,6" stroke="#166534" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="sctitle">Antwort übermittelt</div>
+    <div class="scsub">Danke ${x((INV.contact_name||'').split(' ')[0])}. Deine Rückmeldung ist beim Art Buyer eingegangen.<br>Du wirst benachrichtigt, sobald eine Entscheidung getroffen wird.</div>
+    ${RS.ndaOk?`<div style="margin-top:18px;font-size:12px;color:var(--m);background:var(--ok-bg);border:.5px solid var(--ok-b);border-radius:var(--r);padding:11px 14px;text-align:left;line-height:1.7">
+      <strong style="color:var(--ok)">NDA akzeptiert.</strong><br>
+      Unterzeichnet von <em>${x(RS.ndaName)}</em> am ${today()}.<br>
+      Bei Buchungsbestätigung erhältst du eine gegengezeichnete Kopie per E-Mail.
+    </div>`:''}
+  </div></div>`;
+}
+
+// ═══ UTILITY STATES ═════════════════════════════════════════
+function show(s){
+  const root=document.getElementById('root');
+  if(s==='loading'){root.innerHTML=`<div class="spin-wrap"><div class="spin"></div><div>Einladung wird geladen…</div></div>`;}
+  else if(s==='already'){root.innerHTML=`<div class="card"><div class="sc"><div class="chk-c"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><polyline points="4,11 9,16 18,6" stroke="#166534" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="sctitle">Bereits geantwortet</div><div class="scsub">Deine Rückmeldung wurde bereits übermittelt.<br>Wir melden uns bei dir, wenn du ausgewählt wirst.</div></div></div>`;}
+  else if(s==='expired'){root.innerHTML=`<div class="card"><div class="sc"><div class="sc-icon">⏱</div><div class="sctitle">Frist abgelaufen</div><div class="scsub">Die Deadline dieser Anfrage ist leider abgelaufen.<br>Wende dich direkt an The Gaabs, falls du noch Interesse hast.</div></div></div>`;}
+}
+function showErr(sub){const msgs={invalid:'Dieser Einladungslink ist ungültig.',notfound:'Diese Einladung wurde nicht gefunden.',network:'Verbindungsfehler. Bitte erneut versuchen.'};document.getElementById('root').innerHTML=`<div class="card"><div class="sc"><div class="sc-icon">○</div><div class="sctitle">Fehler</div><div class="scsub">${msgs[sub]||'Unbekannter Fehler.'}</div></div></div>`;}
+
+// ═══ DEFAULT NDA TEXT (fallback if none stored on request) ═══
+function defaultNDA(lang,name,date){
+  if(lang==='de') return `GEHEIMHALTUNGS- & VERTRAULICHKEITSVEREINBARUNG\nThe Gaabs GmbH · Winsstr. 12, 10405 Berlin · Version 2.0\n\nZWISCHEN (1) ${name||'[Name]'} ("AUFNEHMENDE PARTEI") und (2) The Gaabs GmbH, Winsstr. 12, 10405 Berlin ("GAABS"), vertreten durch Marcus Gaab (Geschäftsführer). Datum: ${date}\n\n§ 1 VERTRAULICHE INFORMATIONEN umfassen alle Informationen, Daten, Materialien, Konzepte, Ideen, kreative Werke, Bilder, Texte, Designs und Kundenlisten — in jeglicher Form — die GAABS der AUFNEHMENDEN PARTEI übermittelt, unabhängig von einer Kennzeichnung als vertraulich.\n\n§ 2 GEHEIMHALTUNGSPFLICHT. Die AUFNEHMENDE PARTEI verpflichtet sich, ohne schriftliche Zustimmung von GAABS: (a) keine Vertraulichen Informationen zu verwenden oder weiterzugeben; (b) diese nicht für andere Zwecke als die Projektleistungen zu verwenden.\n\n§ 3 IP-ÜBERTRAGUNG. Alle Rechte an kreativen Ergebnissen entstehen unmittelbar bei GAABS bzw. werden auf den jeweiligen Kunden übertragen. Die AUFNEHMENDE PARTEI tritt alle Rechte ab.\n\n§ 4 KEIN VERÖFFENTLICHEN. Keine Veröffentlichung auf Social Media oder anderen Plattformen ohne vorherige schriftliche Genehmigung von GAABS.\n\n§ 5 KEIN PORTFOLIO. Keine Verwendung für persönliche Portfolios oder Eigenvermarktung ohne schriftliche Bestätigung.\n\n§ 6 KEIN KI-TRAINING. Keine Verwendung als Trainingsdaten oder Eingabe für KI-Systeme ohne schriftliche Zustimmung.\n\n§ 7 LAUFZEIT. 3 Jahre. §§ 2–6 überleben um weitere 5 Jahre.\n\n§ 8 ANWENDBARES RECHT. Deutsches Recht. Gerichtsstand Berlin.\n\nMit der digitalen Annahme bestätigt die AUFNEHMENDE PARTEI, diese Vereinbarung gelesen und akzeptiert zu haben.`;
+  return `NON-DISCLOSURE & CONFIDENTIALITY AGREEMENT\nThe Gaabs GmbH · Winsstr. 12, 10405 Berlin · Version 2.0\n\nBETWEEN (1) ${name||'[Name]'} ("RECIPIENT") and (2) The Gaabs GmbH, Winsstr. 12, 10405 Berlin, Germany ("GAABS"), represented by Marcus Gaab (Managing Director). Date: ${date}\n\n1. CONFIDENTIAL INFORMATION includes all information, data, materials, concepts, ideas, creative works, images, texts, designs, and client lists — in any form — disclosed by GAABS to RECIPIENT, whether or not marked as confidential.\n\n2. CONFIDENTIALITY OBLIGATION. RECIPIENT shall not, without prior written consent of GAABS: (a) use, copy, disclose, or transmit Confidential Information; (b) use it for any purpose other than performing services for the Project.\n\n3. IP ASSIGNMENT. All IP rights in all Creative Output vest in and are assigned to GAABS upon creation. RECIPIENT irrevocably assigns all such rights and waives all moral rights.\n\n4. NO PUBLICATION. RECIPIENT shall not publish, post, or share any Creative Output or project information on any platform without prior written approval from GAABS.\n\n5. NO PORTFOLIO USE. RECIPIENT shall not use any materials for personal portfolio or self-promotion without prior written confirmation.\n\n6. NO AI TRAINING. RECIPIENT shall not use any materials as AI training data, style prompts, or inputs for any generative AI system without prior written consent.\n\n7. TERM. 3 years. Clauses 2–6 survive for a further 5 years.\n\n8. GOVERNING LAW. Germany. Courts of Berlin have exclusive jurisdiction.\n\nBy accepting digitally, RECIPIENT confirms they have read and agree to be bound by all terms above.`;
+}
+
+init();
+</script>
+</body>
+</html>
